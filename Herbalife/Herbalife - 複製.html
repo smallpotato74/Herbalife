@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>健康管理教室 | 你的專屬營養教練</title>
+    <style>
+        :root {
+            --hb-green: #4eb052;
+            --dark-blue: #2c3e50;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", -apple-system, sans-serif;
+            margin: 0; padding: 0; background-color: var(--light-bg); color: #333;
+        }
+
+        /* 導航欄 */
+        nav {
+            background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { height: 35px; }
+
+        /* --- 輪播圖：確保看清全圖 --- */
+        .carousel-container {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+            height: 60vh;
+        }
+
+        .carousel-track {
+            display: flex;
+            width: 400%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .slide {
+            width: 25%;
+            height: 100%;
+            position: relative;
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .slide-content {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 40px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            color: white;
+            text-align: center;
+        }
+
+        .badge { background: var(--hb-green); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 8px; display: inline-block; }
+        .slide-content h2 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+
+        .dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+        .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+        .dot.active { background: var(--hb-green); width: 20px; border-radius: 10px; }
+
+        /* --- 內容區塊 --- */
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        
+        .bmi-card {
+            background: var(--hb-green); color: white; border-radius: 20px;
+            padding: 30px; text-align: center; margin-top: -30px; position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 10;
+        }
+        .bmi-input-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0; }
+        .bmi-card input { padding: 12px; border-radius: 10px; border: none; width: 110px; text-align: center; font-size: 1rem; }
+        .bmi-btn { background: var(--dark-blue); color: white; border: none; padding: 14px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* 產品介紹區塊 */
+        .product-section { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            margin: 40px 0; 
+        }
+        .product-card { 
+            background: white; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card img { width: 100%; height: auto; display: block; }
+        .product-info { padding: 20px; flex-grow: 1; }
+        .product-info h3 { color: var(--hb-green); margin: 0 0 10px 0; font-size: 1.3rem; }
+        .product-info p { font-size: 0.95rem; color: #666; line-height: 1.5; margin: 0; }
+        
+        /* 全局產品按鍵 */
+        .all-products-btn {
+            display: block; width: 85%; max-width: 320px; margin: 10px auto 50px;
+            background: transparent; color: var(--hb-green); border: 2px solid var(--hb-green);
+            padding: 15px; border-radius: 50px; text-align: center; font-weight: bold;
+            text-decoration: none; transition: 0.3s;
+        }
+        .all-products-btn:hover { background: var(--hb-green); color: white; }
+
+        /* 固定 WhatsApp 按鈕 */
+        .sticky-contact { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 999; }
+        .wa-btn { background: #25d366; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: 50px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(37,211,102,0.3); }
+
+        footer { text-align: center; padding: 40px 20px 110px; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <img src="herbalife.jpeg" alt="Herbalife" class="logo">
+    <div style="font-weight: bold; color: var(--hb-green); font-size: 0.85rem;">獨立經銷商</div>
+</nav>
+
+<div class="carousel-container">
+    <div class="carousel-track" id="track">
+        <div class="slide" style="background-image: url('Peony.jpeg');">
+            <div class="slide-content"><span class="badge">學員實證</span><h2>Peony 的健康轉變</h2></div>
+        </div>
+        <div class="slide" style="background-image: url('Elaine.jpeg');">
+            <div class="slide-content"><span class="badge">真實分享</span><h2>Elaine 的美態之旅</h2></div>
+        </div>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800');">
+            <div class="slide-content"><span class="badge">優質營養</span><h2>注入每日活力</h2></div>
+        </div>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800');">
+            <div class="slide-content"><span class="badge">專業指導</span><h2>你的專屬健康教練</h2></div>
+        </div>
+    </div>
+    <div class="dots" id="dots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="bmi-card">
+        <h2>免費 BMI 體質測試</h2>
+        <div class="bmi-input-group">
+            <input type="number" id="height" placeholder="身高 cm">
+            <input type="number" id="weight" placeholder="體重 kg">
+        </div>
+        <button class="bmi-btn" onclick="calcBMI()">立即分析結果</button>
+        <p id="bmi-result" style="margin-top: 15px; font-weight: bold; min-height: 24px;"></p>
+    </div>
+
+    <h2 style="text-align: center; margin-top: 50px;">皇牌營養推薦</h2>
+    <div class="product-section">
+        <div class="product-card">
+            <img src="healthymeal.jpeg" alt="營養蛋白素">
+            <div class="product-info">
+                <h3>營養蛋白素</h3>
+                <p>簡單取代正餐，提供均衡營養與優質蛋白，是您健康管理的核心基礎。</p>
+            </div>
+        </div>
+        <div class="product-card">
+            <img src="herbalaloeconcentrate.jpeg" alt="濃縮蘆薈汁">
+            <div class="product-info">
+                <h3>濃縮蘆薈汁</h3>
+                <p>舒緩消化系統，幫助營養吸收。清爽口感，是健康補水的最佳選擇。</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://www.herbalife.com.hk/all-products/" target="_blank" class="all-products-btn">
+        🛍️ 瀏覽所有康寶萊產品 ➔
+    </a>
+</div>
+
+<footer>
+    <p>© 2026 健康管理教練 [家人名字]</p>
+    <p>免責聲明：產品效果因人而異。本網站內容僅供參考。</p>
+</footer>
+
+<div class="sticky-contact">
+    <a id="wa-link" href="https://wa.me/85291005938?text=你好！我想諮詢健康計劃。" class="wa-btn">
+        💬 聯絡教練領取專屬方案
+    </a>
+</div>
+
+<script>
+    // 輪播圖邏輯
+    let currentSlide = 0;
+    const track = document.getElementById('track');
+    const dots = document.querySelectorAll('.dot');
+    
+    function updateCarousel() {
+        track.style.transform = `translateX(-${currentSlide * 25}%)`;
+        dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
+    }
+
+    setInterval(() => {
+        currentSlide = (currentSlide + 1) % 4;
+        updateCarousel();
+    }, 5000);
+
+    // BMI 計算邏輯
+    function calcBMI() {
+        const h = document.getElementById('height').value / 100;
+        const w = document.getElementById('weight').value;
+        const result = document.getElementById('bmi-result');
+        if(h > 0 && w > 0) {
+            const bmi = (w / (h * h)).toFixed(1);
+            let status = bmi >= 23 ? "（屬於偏重）" : (bmi < 18.5 ? "（屬於偏輕）" : "（標準健康！）");
+            result.innerText = "您的 BMI 是 " + bmi + " " + status;
+            
+            // 更新 WhatsApp 訊息
+            const waMsg = `你好！我測咗 BMI 係 ${bmi}，想諮詢個人化健康方案。`;
+            document.getElementById('wa-link').href = "https://wa.me/85291005938?text=" + encodeURIComponent(waMsg);
+        }
+    }
+</script>
+
+</body>
+</html>
