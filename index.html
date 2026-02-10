@@ -4,230 +4,143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>健康管理教室 | 你的專屬營養教練</title>
-
-    <meta property="og:title" content="健康管理教室 | 30天體態改造計劃">
-    <meta property="og:description" content="提供免費 BMI 分析、飲水目標計算及專業營養指導。">
-    <meta property="og:image" content="Peony.jpeg"> 
-    <meta property="og:type" content="website">
-
-    <link rel="icon" type="image/jpeg" href="herbalife.jpeg">
-
     <style>
         :root { --hb-green: #4eb052; --hb-blue: #2a75bb; --dark-blue: #2c3e50; --light-bg: #f8f9fa; }
-
-        /* 捲動浮現動畫 */
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-
-        body { font-family: "Microsoft JhengHei", -apple-system, sans-serif; margin: 0; padding: 0; background-color: var(--light-bg); color: #333; overflow-x: hidden; }
-        
-        nav { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
-        .logo { height: 35px; }
-
-        /* 主輪播圖 */
+        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; background: var(--light-bg); overflow-x: hidden; }
+        
+        /* 主輪播圖樣式 */
         .carousel-container { width: 100%; position: relative; overflow: hidden; background: #1a1a1a; height: 50vh; touch-action: pan-y; }
-        .carousel-track { display: flex; width: 400%; height: 100%; transition: transform 0.5s ease-in-out; }
-        .slide { width: 25%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; position: relative; }
+        .carousel-track { display: flex; width: 400%; height: 100%; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        .slide { width: 25%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; position: relative; flex-shrink: 0; }
         .slide-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; text-align: center; pointer-events: none; }
-        
+        
         .dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
-        .dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
+        .dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: 0.3s; }
         .dot.active { background: var(--hb-green); width: 25px; border-radius: 10px; }
 
         .container { max-width: 800px; margin: auto; padding: 20px; }
-        
-        /* 通用卡片 */
-        .card { background: white; border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 35px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .input-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0; }
-        input { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100px; text-align: center; font-size: 1rem; }
-        .btn { background: var(--hb-green); color: white; border: none; padding: 14px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; max-width: 250px; transition: 0.3s; }
+        .card { background: white; border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        /* 學員活動樣式 */
+        .activity-carousel-container { width: 100%; position: relative; overflow: hidden; height: 250px; border-radius: 15px; margin: 20px 0; background: #eee; }
+        .activity-carousel-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; touch-action: pan-y; }
+        .activity-slide { width: 50%; height: 100%; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .activity-slide-overlay { background: rgba(0,0,0,0.6); color: white; padding: 8px 20px; border-radius: 50px; font-weight: bold; pointer-events: none; }
 
-        /* 飲水計算機結果 */
-        #water-output { display:none; margin-top: 25px; padding: 25px; background: #fff; border: 2px solid #e1e8f5; border-radius: 20px; }
-        .water-icon { font-size: 40px; color: var(--hb-blue); margin-bottom: 10px; display: block; }
-        .water-main-text { font-size: 1.1rem; color: #2c3e50; line-height: 1.6; margin-bottom: 10px; }
-
-        /* 學員活動區塊 */
-        .activities-section { margin: 40px 0 60px 0; text-align: center; }
-        .activity-carousel-container {
-            width: 100%; position: relative; overflow: hidden; background: #f0f0f0;
-            height: 250px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 15px;
-            touch-action: pan-y;
-        }
-        .activity-carousel-track { display: flex; width: 200%; height: 100%; transition: transform 0.6s ease-in-out; cursor: grab; }
-        .activity-slide {
-            width: 50%; height: 100%; position: relative;
-            background-size: cover; background-position: center; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-        .activity-slide-overlay { background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 50px; font-weight: bold; pointer-events: none; }
-
-        /* FAQ 區塊 */
-        .faq-section { margin: 50px 0 140px 0; }
-        .faq-item { background: white; margin-bottom: 12px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .faq-question { padding: 18px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .faq-answer { padding: 0 18px; max-height: 0; overflow: hidden; transition: all 0.3s ease-out; color: #666; line-height: 1.6; }
-        .faq-item.active .faq-answer { padding: 15px 18px 25px 18px; max-height: 300px; border-top: 1px solid #f0f0f0; }
-
-        /* Modal 彈窗 */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; position: relative; }
-        .modal-image-container img { width: 100%; height: auto; border-radius: 12px; }
-        .modal-whatsapp-btn { display: block; width: 100%; margin-top: 20px; background: #25d366; color: white; text-decoration: none; padding: 16px; border-radius: 50px; font-weight: bold; text-align: center; box-sizing: border-box; }
-
-        /* 固定底部按鈕 */
-        .sticky-contact { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; z-index: 1001; }
-        .wa-btn { background: #25d366; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 18px; border-radius: 50px; font-weight: bold; box-shadow: 0 10px 30px rgba(37,211,102,0.4); }
-        
-        footer { text-align: center; padding: 40px 20px 180px; font-size: 0.8rem; color: #bbb; }
+        /* FAQ & 底部按鈕 */
+        .faq-section { margin-bottom: 150px; }
+        .sticky-contact { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; z-index: 1000; }
+        .wa-btn { background: #25d366; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 18px; border-radius: 50px; font-weight: bold; box-shadow: 0 10px 30px rgba(37,211,102,0.4); }
     </style>
 </head>
 <body>
 
-<nav>
-    <img src="herbalife.jpeg" alt="Logo" class="logo">
+<nav style="background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <img src="herbalife.jpeg" alt="Logo" style="height: 35px;">
     <div style="font-weight: bold; color: var(--hb-green);">獨立健康教練</div>
 </nav>
 
 <div class="carousel-container">
-    <div class="carousel-track" id="track">
+    <div class="carousel-track" id="mainTrack">
         <div class="slide" style="background-image: url('Peony.jpeg');"><div class="slide-content"><h2>學員 Peony 的體態改造</h2></div></div>
         <div class="slide" style="background-image: url('Elaine.jpeg');"><div class="slide-content"><h2>Elaine 找回自信美</h2></div></div>
         <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800');"><div class="slide-content"><h2>均衡營養 活力每一天</h2></div></div>
         <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800');"><div class="slide-content"><h2>專業指導 達成目標</h2></div></div>
     </div>
-    <div class="dots" id="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="dots" id="mainDots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
 </div>
 
 <div class="container">
-    <div class="card reveal" style="background: var(--hb-green); color: white; margin-top: -30px; position: relative; z-index: 10;">
-        <h2 style="margin-top:0;">📊 BMI 體質測試</h2>
-        <div class="input-group">
-            <input type="number" id="height" placeholder="身高 cm">
-            <input type="number" id="weight" placeholder="體重 kg">
+    <div class="card">
+        <h2>📊 BMI 體質測試</h2>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <input type="number" id="h" placeholder="身高 cm" style="padding: 10px; width: 80px;">
+            <input type="number" id="w" placeholder="體重 kg" style="padding: 10px; width: 80px;">
         </div>
-        <button class="btn" style="background: var(--dark-blue);" onclick="calcBMI()">立即分析</button>
-        <p id="bmi-result" style="margin-top: 15px; font-weight: bold;"></p>
+        <button onclick="calcBMI()" style="margin-top: 15px; background: var(--hb-green); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold;">立即分析</button>
+        <p id="bmi-res" style="margin-top: 15px; font-weight: bold;"></p>
     </div>
 
-    <div class="card reveal" style="border-top: 5px solid var(--hb-blue);">
-        <h2 style="color: var(--dark-blue);">💧 Daily Water Intake</h2>
-        <div class="input-group">
-            <div><label style="font-size:0.7rem;">體重 (kg)</label><input type="number" id="wWeight" placeholder="60"></div>
-            <div><label style="font-size:0.7rem;">年齡</label><input type="number" id="wAge" placeholder="30"></div>
-            <div><label style="font-size:0.7rem;">體溫 (°C)</label><input type="number" id="wTemp" value="36.5"></div>
-        </div>
-        <button class="btn" style="background: var(--hb-blue);" onclick="calcWater()">計算建議水量</button>
-        <div id="water-output">
-            <span class="water-icon">💧</span>
-            <div id="water-need" class="water-main-text"></div>
-        </div>
-    </div>
-
-    <div class="activities-section reveal">
-        <h2 style="margin-bottom: 25px;">🏆 學員專屬活動</h2>
-        <div class="activity-carousel-container">
-            <div class="activity-carousel-track" id="activityTrack">
-                <div class="activity-slide" style="background-image: url('bouncing.jpg');" onclick="handleActivityClick('trampoline')">
-                    <div class="activity-slide-overlay">活力彈床運動</div>
-                </div>
-                <div class="activity-slide" style="background-image: url('stepping.jpg');" onclick="handleActivityClick('stepping')">
-                    <div class="activity-slide-overlay">爆汗踏板訓練</div>
-                </div>
+    <h2 style="text-align:center; margin-top: 40px;">🏆 學員專屬活動</h2>
+    <div class="activity-carousel-container">
+        <div class="activity-carousel-track" id="actTrack">
+            <div class="activity-slide" style="background-image: url('bouncing.jpg');">
+                <div class="activity-slide-overlay">活力彈床運動</div>
             </div>
-            <div class="dots" id="activityDots">
-                <div class="dot active"></div><div class="dot"></div>
+            <div class="activity-slide" style="background-image: url('stepping.jpg');">
+                <div class="activity-slide-overlay">爆汗踏板訓練</div>
             </div>
         </div>
     </div>
 
-    <div class="faq-section reveal">
-        <h2 style="text-align: center; margin-bottom: 30px;">💡 常見問題 FAQ</h2>
-        <div class="faq-item">
-            <div class="faq-question">一定要配合運動才能減肥嗎？</div>
-            <div class="faq-answer">運動能增加代謝速度，但減重的關鍵 80% 取決於營養攝取。我們的方案會為你平衡兩者。</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-question">產品適合素食者嗎？</div>
-            <div class="faq-answer">是的！我們有多款大豆蛋白基礎產品，非常適合素食者補充優質蛋白。</div>
-        </div>
+    <div class="faq-section">
+        <h2 style="text-align:center;">💡 常見問題 FAQ</h2>
+        <p style="text-align:center; color: #666;">點擊下方按鈕預約免費諮詢。</p>
     </div>
 </div>
 
 <div class="sticky-contact">
-    <a id="wa-link" href="https://wa.me/85291005938?text=你好！我想諮詢健康計劃。" class="wa-btn">💬 聯絡教練領取專屬方案</a>
-</div>
-
-<div id="activityModal" class="modal">
-    <div class="modal-content">
-        <span style="position:absolute;top:10px;right:15px;cursor:pointer;font-size:24px;" onclick="closeModal()">×</span>
-        <div class="modal-image-container"><img id="modalImage" src="" alt="活動照片"></div>
-        <h3 id="modalTitle"></h3>
-        <p id="modalDescription" style="line-height:1.6; color:#555;"></p>
-        <a id="modalWhatsappLink" href="" target="_blank" class="modal-whatsapp-btn">💬 立即預留活動名額</a>
-    </div>
+    <a href="https://wa.me/85291005938" class="wa-btn">💬 聯絡教練領取專屬方案</a>
 </div>
 
 <script>
-    // 1. 輪播圖邏輯
-    let cur = 0;
-    const track = document.getElementById('track'), dots = document.querySelectorAll('#dots .dot');
-    function move(idx) { cur=(idx+4)%4; track.style.transform=`translateX(-${cur*25}%)`; dots.forEach((d,i)=>d.classList.toggle('active',i===cur)); }
-    setInterval(()=>move(cur+1), 5000);
+    // --- 主輪播圖邏輯 (修復手動轉動) ---
+    let mainCur = 0;
+    const mainTrack = document.getElementById('mainTrack');
+    const mainDots = document.querySelectorAll('#mainDots .dot');
 
-    let curAct = 0, actStartX = 0, isMoving = false;
-    const actTrack = document.getElementById('activityTrack'), actDots = document.querySelectorAll('#activityDots .dot');
-    function moveAct(idx) { curAct=(idx+2)%2; actTrack.style.transform=`translateX(-${curAct*50}%)`; actDots.forEach((d,i)=>d.classList.toggle('active',i===curAct)); }
-    actTrack.addEventListener('touchstart', e => { actStartX = e.touches[0].clientX; isMoving = false; });
-    actTrack.addEventListener('touchmove', () => isMoving = true);
-    actTrack.addEventListener('touchend', e => { let d = actStartX - e.changedTouches[0].clientX; if(Math.abs(d)>50) moveAct(d>0?curAct+1:curAct-1); });
-
-    function handleActivityClick(id) { if(!isMoving) openModal(id); }
-
-    // 更新處 3: 副視窗彈出時顯示的圖片檔名
-    const details = {
-        'trampoline': { 
-            title: "活力彈床運動班", 
-            image: "bouncing.jpg", 
-            desc: "高效燃燒卡路里，鍛鍊核心肌群，提升心肺功能，讓你在歡樂中塑形減脂！", 
-            wa: "我想報名彈床運動班！" 
-        },
-        'stepping': { 
-            title: "爆汗踏板訓練班", 
-            image: "stepping.jpg", 
-            desc: "短時間內大量排汗，加速新陳代謝。教練帶領你挑戰極限，感受爆汗快感！", 
-            wa: "我想報名踏板訓練班！" 
-        }
-    };
-    function openModal(id) {
-        const d = details[id];
-        document.getElementById('modalTitle').innerText = d.title;
-        document.getElementById('modalImage').src = d.image;
-        document.getElementById('modalDescription').innerText = d.desc;
-        document.getElementById('modalWhatsappLink').href = `https://wa.me/85291005938?text=${encodeURIComponent(d.wa)}`;
-        document.getElementById('activityModal').style.display = 'flex';
+    function moveMain(idx) {
+        mainCur = (idx + 4) % 4;
+        mainTrack.style.transform = `translateX(-${mainCur * 25}%)`;
+        mainDots.forEach((d, i) => d.classList.toggle('active', i === mainCur));
     }
-    function closeModal() { document.getElementById('activityModal').style.display = 'none'; }
 
-    // 2. BMI & 飲水
+    let timer = setInterval(() => moveMain(mainCur + 1), 5000);
+
+    let startX = 0;
+    mainTrack.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        clearInterval(timer);
+    });
+
+    mainTrack.addEventListener('touchend', e => {
+        let diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) moveMain(diff > 0 ? mainCur + 1 : mainCur - 1);
+        timer = setInterval(() => moveMain(mainCur + 1), 5000);
+    });
+
+    mainDots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+            clearInterval(timer);
+            moveMain(i);
+            timer = setInterval(() => moveMain(mainCur + 1), 5000);
+        });
+    });
+
+    // --- 活動輪播圖邏輯 (手動滑動) ---
+    let actCur = 0;
+    const actTrack = document.getElementById('actTrack');
+    let actStartX = 0;
+
+    actTrack.addEventListener('touchstart', e => actStartX = e.touches[0].clientX);
+    actTrack.addEventListener('touchend', e => {
+        let diff = actStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            actCur = (diff > 0) ? 1 : 0;
+            actTrack.style.transform = `translateX(-${actCur * 50}%)`;
+        }
+    });
+
     function calcBMI() {
-        const h = document.getElementById('height').value/100, w = document.getElementById('weight').value;
-        if(h>0 && w>0) document.getElementById('bmi-result').innerText = `您的 BMI 是 ${(w/(h*h)).toFixed(1)}`;
-    }
-    function calcWater() {
-        const w = parseFloat(document.getElementById('wWeight').value);
-        if (w > 0) {
-            let total = w * 35 + (parseFloat(document.getElementById('wTemp').value) > 37 ? 500 : 0);
-            document.getElementById('water-output').style.display = 'block';
-            document.getElementById('water-need').innerHTML = `您的建議飲水量為 <b style="color:var(--hb-blue); font-size:1.3rem;">${total.toFixed(0)} ml</b>`;
+        const height = document.getElementById('h').value / 100;
+        const weight = document.getElementById('w').value;
+        if(height > 0 && weight > 0) {
+            const bmi = (weight / (height * height)).toFixed(1);
+            document.getElementById('bmi-res').innerText = "您的 BMI: " + bmi;
         }
     }
-
-    // 3. FAQ & 捲動
-    document.querySelectorAll('.faq-question').forEach(q => q.addEventListener('click', () => q.parentElement.classList.toggle('active')));
-    function reveal() { document.querySelectorAll('.reveal').forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add('active'); }); }
-    window.addEventListener('scroll', reveal);
-    reveal();
 </script>
 </body>
 </html>
