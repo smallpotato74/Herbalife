@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>健康管理教室</title>
+    <style>
+        :root { --hb-green: #4eb052; --hb-blue: #2a75bb; --dark: #2c3e50; --bg: #f8f9fa; }
+        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; background: var(--bg); color: #333; }
+        
+        /* 主輪播圖 */
+        .main-carousel { width: 100%; height: 50vh; position: relative; overflow: hidden; background: #000; touch-action: pan-y; }
+        .main-track { display: flex; width: 400%; height: 100%; transition: transform 0.5s ease; }
+        .main-slide { width: 25%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; position: relative; flex-shrink: 0; }
+        .main-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+        .dot.active { background: var(--hb-green); width: 20px; border-radius: 5px; }
+
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+        
+        .input-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
+        .input-item { display: flex; flex-direction: column; align-items: center; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 70px; text-align: center; }
+        .btn { background: var(--hb-green); color: white; border: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; width: 85%; margin-top: 10px; cursor: pointer; }
+
+        /* 活動輪播圖 */
+        .act-container { width: 100%; height: 250px; position: relative; overflow: hidden; border-radius: 15px; margin: 20px 0; touch-action: pan-y; }
+        .act-track { display: flex; width: 200%; height: 100%; transition: transform 0.5s ease; }
+        .act-slide { width: 50%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
+        .act-label { background: rgba(0,0,0,0.6); color: white; padding: 8px 20px; border-radius: 50px; font-weight: bold; }
+
+        /* 常見問題 FAQ */
+        .faq-item { text-align: left; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .faq-q { font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-a { padding-top: 10px; color: #666; display: none; line-height: 1.6; }
+
+        .footer-space { height: 120px; }
+        .fixed-wa { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 999; }
+        .wa-btn { background: #25d366; color: white; text-decoration: none; display: block; padding: 15px; border-radius: 50px; text-align: center; font-weight: bold; box-shadow: 0 5px 20px rgba(37,211,102,0.3); }
+    </style>
+</head>
+<body>
+
+<nav style="background:white; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee;">
+    <img src="herbalife.jpeg" style="height:30px;">
+    <span style="font-weight:bold; color:var(--hb-green);">健康教練網</span>
+</nav>
+
+<div class="main-carousel">
+    <div class="main-track" id="mainTrack">
+        <div class="main-slide" style="background-image: url('Peony.jpeg');"></div>
+        <div class="main-slide" style="background-image: url('Elaine.jpeg');"></div>
+        <div class="main-slide" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800');"></div>
+        <div class="main-slide" style="background-image: url('https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800');"></div>
+    </div>
+    <div class="main-dots" id="mainDots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3>📊 BMI 體質測試</h3>
+        <div class="input-group">
+            <div class="input-item"><label style="font-size:12px;">身高cm</label><input type="number" id="h" placeholder="170"></div>
+            <div class="input-item"><label style="font-size:12px;">體重kg</label><input type="number" id="w" placeholder="60"></div>
+            <div class="input-item"><label style="font-size:12px;">年齡</label><input type="number" id="bmi-age" placeholder="25"></div>
+        </div>
+        <button class="btn" onclick="calcBMI()">開始分析</button>
+        <p id="bmi-res" style="margin-top:15px; color:var(--hb-green); font-weight:bold;"></p>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--hb-blue);">
+        <h3>💧 飲水目標計算機</h3>
+        <div class="input-group">
+            <div class="input-item"><label style="font-size:12px;">體重kg</label><input type="number" id="water-w" placeholder="60"></div>
+            <div class="input-item"><label style="font-size:12px;">年齡</label><input type="number" id="water-age" placeholder="30"></div>
+            <div class="input-item"><label style="font-size:12px;">體溫°C</label><input type="number" id="water-t" value="36.5"></div>
+        </div>
+        <button class="btn" style="background:var(--hb-blue);" onclick="calcWater()">計算建議水量</button>
+        <div id="water-res" style="margin-top:15px; font-weight:bold; color:var(--hb-blue);"></div>
+    </div>
+
+    <h3 style="text-align:center;">🏆 學員活動專區</h3>
+    <div class="act-container">
+        <div class="act-track" id="actTrack">
+            <div class="act-slide" style="background-image: url('bouncing.jpg');"><div class="act-label">活力彈床</div></div>
+            <div class="act-slide" style="background-image: url('stepping.jpg');"><div class="act-label">爆汗踏板</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>💡 常見問題 FAQ</h3>
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFAQ(this)">一定要配合運動才能減肥嗎？ <span>+</span></div>
+            <div class="faq-a">運動能增加代謝，但減重關鍵 80% 取決於營養攝取。我們的方案會為你平衡兩者。</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFAQ(this)">產品適合素食者嗎？ <span>+</span></div>
+            <div class="faq-a">是的！我們有多款大豆蛋白基礎產品，非常適合素食者補充優質蛋白。</div>
+        </div>
+    </div>
+
+    <div class="footer-space"></div>
+</div>
+
+<div class="fixed-wa">
+    <a href="https://wa.me/85291005938" class="wa-btn">💬 聯絡教練領取專屬方案</a>
+</div>
+
+<script>
+    // 1. 主輪播圖 (自動 + 手動)
+    let cur = 0;
+    const track = document.getElementById('mainTrack');
+    const dots = document.querySelectorAll('#mainDots .dot');
+    let startX = 0;
+    let timer = setInterval(() => move(cur + 1), 5000);
+
+    function move(i) {
+        cur = (i + 4) % 4;
+        track.style.transform = `translateX(-${cur * 25}%)`;
+        dots.forEach((d, idx) => d.classList.toggle('active', idx === cur));
+    }
+
+    track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; clearInterval(timer); });
+    track.addEventListener('touchend', e => {
+        let diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) move(diff > 0 ? cur + 1 : cur - 1);
+        timer = setInterval(() => move(cur + 1), 5000);
+    });
+
+    // 2. 活動輪播圖 (手動)
+    const actTrack = document.getElementById('actTrack');
+    let actCur = 0;
+    let actStartX = 0;
+    actTrack.addEventListener('touchstart', e => actStartX = e.touches[0].clientX);
+    actTrack.addEventListener('touchend', e => {
+        let diff = actStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+            actCur = diff > 0 ? 1 : 0;
+            actTrack.style.transform = `translateX(-${actCur * 50}%)`;
+        }
+    });
+
+    // 3. 計算功能
+    function calcBMI() {
+        let h = document.getElementById('h').value / 100, w = document.getElementById('w').value;
+        if(h>0 && w>0) document.getElementById('bmi-res').innerText = "您的 BMI 為: " + (w/(h*h)).toFixed(1);
+    }
+    function calcWater() {
+        let w = parseFloat(document.getElementById('water-w').value), age = parseInt(document.getElementById('water-age').value), t = parseFloat(document.getElementById('water-t').value);
+        if(w>0) {
+            let factor = age < 30 ? 40 : (age > 55 ? 30 : 35);
+            let total = (w * factor) + (t > 37 ? 500 : 0);
+            document.getElementById('water-res').innerText = "建議每日飲水量: " + Math.round(total) + " ml";
+        }
+    }
+    function toggleFAQ(el) {
+        let a = el.nextElementSibling;
+        let isOpen = a.style.display === 'block';
+        a.style.display = isOpen ? 'none' : 'block';
+        el.querySelector('span').innerText = isOpen ? '+' : '-';
+    }
+</script>
+</body>
+</html>
