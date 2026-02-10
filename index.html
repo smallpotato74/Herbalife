@@ -177,20 +177,46 @@
         if (Math.abs(diff) > 50) move(diff > 0 ? cur + 1 : cur - 1);
         timer = setInterval(() => move(cur + 1), 5000);
     });
-
-    // 計算功能
+    // 1. BMI 計算 + 評價
     function calcBMI() {
-        let h = document.getElementById('h').value / 100, w = document.getElementById('w').value;
-        if(h>0 && w>0) document.getElementById('bmi-res').innerText = "您的 BMI 為: " + (w/(h*h)).toFixed(1);
+        let h = document.getElementById('h').value / 100;
+        let w = document.getElementById('w').value;
+        let resArea = document.getElementById('bmi-res');
+        
+        if(h > 0 && w > 0) {
+            let bmi = (w / (h * h)).toFixed(1);
+            let status = "";
+            let color = "";
+
+            if(bmi < 18.5) { status = "體重過輕 (建議補充足夠營養)"; color = "#f39c12"; }
+            else if(bmi < 24) { status = "標準身材 (太棒了！請保持)"; color = "#4eb052"; }
+            else if(bmi < 27) { status = "過重 (建議啟動飲食管理)"; color = "#e67e22"; }
+            else { status = "肥胖 (建議立即諮詢教練減重)"; color = "#e74c3c"; }
+
+            resArea.innerHTML = `您的 BMI: ${bmi}<br><span style="color:${color}">${status}</span>`;
+        } else {
+            resArea.innerText = "請輸入正確的身高體重";
+        }
     }
 
+    // 2. 飲水計算 (Herbalife 代謝優化版)
     function calcWater() {
-        let w = parseFloat(document.getElementById('water-w').value), age = parseInt(document.getElementById('water-age').value), t = parseFloat(document.getElementById('water-t').value);
-        if(w>0) {
-            let factor = age < 30 ? 40 : (age > 55 ? 30 : 35);
-            let total = (w * factor) + (t > 37 ? 500 : 0);
-            document.getElementById('water-res').innerText = "建議每日飲水量: " + Math.round(total) + " ml";
+        let w = parseFloat(document.getElementById('water-w').value);
+        let t = parseFloat(document.getElementById('water-t').value);
+        let resArea = document.getElementById('water-res');
+
+        if(w > 0) {
+            // Herbalife 學員建議標準：每公斤 45ml
+            let base = w * 45; 
+            let extra = (t > 37) ? 500 : 0; // 發熱/體溫高額外補水
+            let total = Math.round(base + extra);
+            
+            resArea.innerHTML = `建議每日水量: ${total} ml<br><small style="font-weight:normal;">(含奶昔及草本茶水分)</small>`;
+        } else {
+            resArea.innerText = "請輸入體重";
         }
+    }
+
     }
 
     function toggleFAQ(el) {
