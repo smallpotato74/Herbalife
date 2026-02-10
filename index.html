@@ -38,6 +38,13 @@
         .footer-space { height: 120px; }
         .fixed-wa { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 999; }
         .wa-btn { background: #25d366; color: white; text-decoration: none; display: block; padding: 15px; border-radius: 50px; text-align: center; font-weight: bold; box-shadow: 0 5px 20px rgba(37,211,102,0.3); }
+            /* Modal 彈出視窗 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; position: relative; text-align: center; }
+        .modal-img { width: 100%; height: 200px; object-fit: cover; border-radius: 15px; margin-bottom: 15px; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #999; }
+b
+    
     </style>
 </head>
 <body>
@@ -84,10 +91,9 @@
 
     <h3 style="text-align:center;">🏆 學員活動專區</h3>
     <div class="act-container">
-        <div class="act-track" id="actTrack">
-            <div class="act-slide" style="background-image: url('bouncing.jpg');"><div class="act-label">活力彈床</div></div>
-            <div class="act-slide" style="background-image: url('stepping.jpg');"><div class="act-label">爆汗踏板</div></div>
-        </div>
+                    <div class="act-slide" style="background-image: url('bouncing.jpg');" onclick="openModal('trampoline')"><div class="act-label">活力彈床</div></div>
+            <div class="act-slide" style="background-image: url('stepping.jpg');" onclick="openModal('stepping')"><div class="act-label">爆汗踏板</div></div>
+
     </div>
 
     <div class="card">
@@ -104,12 +110,39 @@
 
     <div class="footer-space"></div>
 </div>
+<div id="actModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <img id="m-img" src="" class="modal-img">
+        <h3 id="m-title"></h3>
+        <p id="m-desc" style="font-size:14px; color:#666; line-height:1.6;"></p>
+        <a id="m-wa" href="" class="wa-btn" style="position:static; width:100%; box-sizing:border-box;">💬 立即報名預約</a>
+    </div>
+</div>
 
 <div class="fixed-wa">
     <a href="https://wa.me/85291005938" class="wa-btn">💬 聯絡教練領取專屬方案</a>
 </div>
 
 <script>
+
+        // 彈窗資料與功能
+    const info = {
+        'trampoline': { title: '活力彈床運動', img: 'bouncing.jpg', desc: '高效燃脂，鍛鍊核心，讓你在跳躍中提升心肺功能！', wa: '我想報名參加：活力彈床運動班' },
+        'stepping': { title: '爆汗踏板訓練', img: 'stepping.jpg', desc: '針對下肢線條雕塑，快速排汗，是瘦腿的首選活動！', wa: '我想報名參加：爆汗踏板訓練班' }
+    };
+
+    function openModal(id) {
+        const d = info[id];
+        document.getElementById('m-img').src = d.img;
+        document.getElementById('m-title').innerText = d.title;
+        document.getElementById('m-desc').innerText = d.desc;
+        // 這裡就是你想要的 WhatsApp 預設文字功能
+        document.getElementById('m-wa').href = "https://wa.me/85291005938?text=" + encodeURIComponent(d.wa);
+        document.getElementById('actModal').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('actModal').style.display = 'none'; }
+
     // 1. 主輪播圖 (自動 + 手動)
     let cur = 0;
     const track = document.getElementById('mainTrack');
