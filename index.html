@@ -177,7 +177,7 @@
         if (Math.abs(diff) > 50) move(diff > 0 ? cur + 1 : cur - 1);
         timer = setInterval(() => move(cur + 1), 5000);
     });
-    // 1. BMI 計算 + 評價
+       // 1. BMI 計算 (移除年齡邏輯，加入產品推薦)
     function calcBMI() {
         let h = document.getElementById('h').value / 100;
         let w = document.getElementById('w').value;
@@ -185,38 +185,36 @@
         
         if(h > 0 && w > 0) {
             let bmi = (w / (h * h)).toFixed(1);
-            let status = "";
-            let color = "";
+            let status = ""; let color = ""; let rec = "";
 
-            if(bmi < 18.5) { status = "體重過輕 (建議補充足夠營養)"; color = "#f39c12"; }
-            else if(bmi < 24) { status = "標準身材 (太棒了！請保持)"; color = "#4eb052"; }
-            else if(bmi < 27) { status = "過重 (建議啟動飲食管理)"; color = "#e67e22"; }
-            else { status = "肥胖 (建議立即諮詢教練減重)"; color = "#e74c3c"; }
+            if(bmi < 18.5) { 
+                status = "體重過輕"; color = "#f39c12"; 
+                rec = "💡 推薦：營養蛋白素 + PPP蛋白質粉，增加肌肉品質。"; 
+            } else if(bmi < 24) { 
+                status = "標準身材"; color = "#4eb052"; 
+                rec = "💡 推薦：繼續使用奶昔維持每日均衡營養。"; 
+            } else if(bmi < 27) { 
+                status = "過重"; color = "#e67e22"; 
+                rec = "💡 推薦：草本茶 + 奶昔代餐，啟動燃脂計劃。"; 
+            } else { 
+                status = "肥胖"; color = "#e74c3c"; 
+                rec = "💡 推薦：全套減重方案，請立即諮詢教練。"; 
+            }
 
-            resArea.innerHTML = `您的 BMI: ${bmi}<br><span style="color:${color}">${status}</span>`;
-        } else {
-            resArea.innerText = "請輸入正確的身高體重";
+            resArea.innerHTML = `您的 BMI: ${bmi} (<span style="color:${color}">${status}</span>)<div style="margin-top:10px; font-size:13px; background:#fffde7; padding:10px; border-radius:10px; border:1px dashed #fbc02d; font-weight:normal;">${rec}</div>`;
         }
     }
 
-    // 2. 飲水計算 (Herbalife 代謝優化版)
+    // 2. 飲水計算 (修正多餘的 } 符號)
     function calcWater() {
         let w = parseFloat(document.getElementById('water-w').value);
         let t = parseFloat(document.getElementById('water-t').value);
         let resArea = document.getElementById('water-res');
 
         if(w > 0) {
-            // Herbalife 學員建議標準：每公斤 45ml
-            let base = w * 45; 
-            let extra = (t > 37) ? 500 : 0; // 發熱/體溫高額外補水
-            let total = Math.round(base + extra);
-            
-            resArea.innerHTML = `建議每日水量: ${total} ml<br><small style="font-weight:normal;">(含奶昔及草本茶水分)</small>`;
-        } else {
-            resArea.innerText = "請輸入體重";
+            let total = Math.round(w * 45 + (t > 37 ? 500 : 0));
+            resArea.innerHTML = `建議每日水量: ${total} ml<br><small>(建議配合蘆薈汁提升吸收率)</small>`;
         }
-    }
-
     }
 
     function toggleFAQ(el) {
