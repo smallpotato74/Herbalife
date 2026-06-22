@@ -15,22 +15,24 @@
     font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
     -webkit-text-size-adjust:100%;}
   header{position:sticky;top:0;z-index:5;background:rgba(15,20,25,.95);
-    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
-    padding:14px 16px;}
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px;}
   h1{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}
   .meta{font-size:12px;color:var(--dim);margin-top:4px;display:flex;
     flex-wrap:wrap;gap:6px 14px;align-items:center}
   .src{padding:1px 8px;border-radius:20px;font-weight:700;font-size:11px}
   .src.LIVE{background:#10331c;color:var(--good)}
-  .src.DEMO\(合成數據\),.src.demo{background:#3a2a12;color:var(--warn)}
-  .wrap{max-width:840px;margin:0 auto;padding:14px}
-  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .src.demo{background:#3a2a12;color:var(--warn)}
+  .wrap{max-width:880px;margin:0 auto;padding:14px}
+  .bar-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
   .chip{border:1px solid var(--line);background:var(--card);color:var(--dim);
-    padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer}
+    padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer;user-select:none}
   .chip.on{color:#fff;border-color:transparent}
-  .chip.on[data-f="ALL"]{background:#39424f;color:#fff}
+  .chip.on[data-f="ALL"],.chip.on[data-v]{background:#39424f;color:#fff}
   .chip.on[data-f="BUY"]{background:var(--buy)}
   .chip.on[data-f="SELL"]{background:var(--sell)}
+  .sp{flex:1}
+  .seg{display:flex;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+  .seg .chip{border:none;border-radius:0;margin:0}
 
   .tk{background:var(--card);border:1px solid var(--line);border-radius:14px;
     margin-bottom:16px;overflow:hidden}
@@ -42,13 +44,17 @@
   .badge.BUY{background:var(--buy);color:#fff}
   .badge.SELL{background:var(--sell);color:#fff}
   .badge.NEUTRAL{background:#39424f;color:#fff}
-  .stat{display:flex;flex-wrap:wrap;gap:6px 16px;padding:0 16px 12px;
-    font-size:12px;color:var(--dim)}
+  .stat{display:flex;flex-wrap:wrap;gap:6px 16px;padding:0 16px 10px;
+    font-size:12px;color:var(--dim);align-items:center}
   .stat b{color:var(--txt);font-weight:600}
   .er{color:var(--warn)}
+  .spark{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .spark .lbl{font-size:10px;color:var(--dim)}
 
+  .sec-t{font-size:11px;color:var(--dim);padding:8px 16px 2px;letter-spacing:1px;
+    text-transform:uppercase}
   .picks{border-top:1px solid var(--line)}
-  .pick{padding:12px 16px;border-bottom:1px solid var(--line)}
+  .pick{padding:11px 16px;border-bottom:1px solid var(--line)}
   .pick:last-child{border-bottom:none}
   .pr1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .ptype{font-weight:800;font-size:12px;padding:2px 8px;border-radius:6px}
@@ -57,26 +63,57 @@
   .pk{font-weight:700;font-size:15px}
   .pexp{font-size:12px;color:var(--dim)}
   .score{margin-left:auto;display:flex;align-items:center;gap:8px}
-  .bar{width:70px;height:7px;border-radius:4px;background:#0c1117;overflow:hidden}
-  .bar>i{display:block;height:100%}
+  .barbox{width:64px;height:7px;border-radius:4px;background:#0c1117;overflow:hidden}
+  .barbox>i{display:block;height:100%}
   .sval{font-weight:800;font-size:14px;min-width:34px;text-align:right}
   .greeks{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:7px;
     font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
   .greeks b{color:var(--txt);font-weight:600}
   .why{margin-top:7px;font-size:11.5px;color:var(--dim);display:none}
   .why.show{display:block}
-  .why div{padding:2px 0}
-  .togg{font-size:11px;color:var(--call);cursor:pointer;margin-top:6px;
-    display:inline-block}
-  .exit{margin:6px 16px 14px;padding:10px 12px;background:var(--card2);
+  .togg{font-size:11px;color:var(--call);cursor:pointer;margin-top:6px;display:inline-block}
+
+  /* spreads */
+  .spreads{border-top:1px solid var(--line);background:#161d26}
+  .spread{padding:11px 16px;border-bottom:1px solid var(--line)}
+  .spread:last-child{border-bottom:none}
+  .sp-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sp-name{font-weight:700;font-size:13px}
+  .sp-view{font-size:11px;color:var(--dim);background:#0c1117;padding:1px 7px;border-radius:10px}
+  .sp-kind{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px}
+  .sp-kind.credit{background:#10331c;color:var(--good)}
+  .sp-kind.debit{background:#11243f;color:var(--call)}
+  .sp-legs{font-size:11.5px;color:var(--dim);margin-top:5px}
+  .sp-legs .b{color:var(--good)} .sp-legs .s{color:var(--sell)}
+  .sp-nums{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12px;color:var(--dim)}
+  .sp-nums b{color:var(--txt)}
+  .rrpill{font-weight:800;color:#fff;background:#39424f;padding:0 7px;border-radius:10px}
+
+  .exit{margin:8px 16px 14px;padding:10px 12px;background:var(--card2);
     border-radius:10px;font-size:12px;color:var(--dim);line-height:1.6}
   .exit b{color:var(--txt)}
   .empty{padding:18px 16px;color:var(--dim);font-size:13px}
-  footer{max-width:840px;margin:0 auto;padding:18px 16px 40px;
+
+  /* overview table */
+  #tableView{display:none}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--dim);font-weight:600;cursor:pointer;position:sticky;top:64px;
+    background:var(--bg);font-size:12px}
+  th.sorted::after{content:" ↓";color:var(--call)}
+  th.asc::after{content:" ↑";color:var(--call)}
+  tr:hover td{background:#161d26}
+  .mini{font-weight:800;font-size:11px;padding:1px 6px;border-radius:5px}
+  .mini.BUY{background:var(--buy)} .mini.SELL{background:var(--sell)}
+  .mini.CALL{color:var(--call)} .mini.PUT{color:var(--put)}
+
+  footer{max-width:880px;margin:0 auto;padding:18px 16px 40px;
     font-size:11px;color:var(--dim);line-height:1.7}
+  code{background:#0c1117;padding:1px 6px;border-radius:5px;font-size:12px}
   .err{background:#3a1518;border:1px solid #5c2327;color:#ffb4ba;
     padding:14px;border-radius:12px;font-size:13px;line-height:1.7}
-  code{background:#0c1117;padding:1px 6px;border-radius:5px;font-size:12px}
   .refresh{background:none;border:1px solid var(--line);color:var(--dim);
     border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
 </style>
@@ -88,116 +125,193 @@
 </header>
 
 <div class="wrap">
-  <div class="filters" id="filters" style="display:none">
+  <div class="bar-row" id="bar" style="display:none">
     <div class="chip on" data-f="ALL">全部</div>
-    <div class="chip" data-f="BUY">只睇 BUY</div>
-    <div class="chip" data-f="SELL">只睇 SELL</div>
+    <div class="chip" data-f="BUY">BUY</div>
+    <div class="chip" data-f="SELL">SELL</div>
+    <span class="sp"></span>
+    <div class="seg">
+      <div class="chip on" data-v="cards">卡片</div>
+      <div class="chip" data-v="table">總覽表</div>
+    </div>
   </div>
-  <div id="app"></div>
+  <div id="cardView"></div>
+  <div id="tableView"></div>
 </div>
 
 <footer>
   ⚠️ 教育用途,非投資建議。期權高風險,落場前用模擬倉。<br>
-  數據由 <code>options_screener.py</code> 生成 → <code>options_data.json</code>。
-  方向:IV/HV&lt;1.0 偏 BUY、&gt;1.2 偏 SELL。分數滿分 100(流動性+Delta+到價+IV regime)。
+  方向:IV/HV&lt;1.0 偏 BUY、&gt;1.2 偏 SELL。分數滿分 100。Spread 已 defined-risk,
+  max 風險/回報已計。趨勢線係 IV/HV 走勢(紅虛線=1.0 分界)。
 </footer>
 
-<!-- 本地 file:// 開都讀到(fetch 失敗時 fallback) -->
-<script src="options_data.js" onerror="window.__noJS=1"></script>
+<script src="options_data.js" onerror="window.__noData=1"></script>
+<script src="options_history.js" onerror="window.__noHist=1"></script>
 <script>
 const EXIT = {
-  BUY:"<b>買方退場</b>：賺 +50~100% 止賺 / 蝕 −40~50% 止蝕 / 到 21 DTE 未 work 就重評換月。",
-  SELL:"<b>賣方退場</b>：收到 50% premium 止賺 / 蝕到 2× credit 止蝕 / 到 21 DTE 管理避 gamma。⚠️ 裸 short call 風險無限,用 spread。",
-  NEUTRAL:"中性:考慮觀望或用 spread / iron condor。"
+  BUY:"<b>買方退場</b>:賺 +50~100% 止賺 / 蝕 −40~50% 止蝕 / 21 DTE 未 work 重評換月。",
+  SELL:"<b>賣方退場</b>:收 50% premium 止賺 / 蝕 2× credit 止蝕 / 21 DTE 管理避 gamma。",
+  NEUTRAL:"中性:觀望或用 spread / iron condor。"
 };
-const fmtPct = x => x==null ? "—" : (x*100).toFixed(1)+"%";
-const scoreColor = s => s>=80?"#3fb950":s>=60?"#d29922":s>=40?"#db6d28":"#f85149";
+const pct = x => x==null?"—":(x*100).toFixed(1)+"%";
+const sc = s => s>=80?"#3fb950":s>=60?"#d29922":s>=40?"#db6d28":"#f85149";
+let HIST = {};
 
-function render(data){
-  const m = document.getElementById('meta');
-  m.innerHTML = `<span class="src ${(data.source||'').includes('LIVE')?'LIVE':'demo'}">${data.source||'?'}</span>`
-    + `更新:${data.generated_at||'—'}`
-    + ` · DTE ${data.config?.min_dte}-${data.config?.max_dte}`
-    + ` · <button class="refresh" onclick="location.reload()">↻ 重新整理</button>`;
-  document.getElementById('filters').style.display='flex';
+function sparkline(rows){
+  if(!rows||rows.length<2) return "";
+  const vals = rows.map(r=>r.iv_hv).filter(v=>v!=null);
+  if(vals.length<2) return "";
+  const W=120,H=30,pad=2;
+  const lo=Math.min(...vals,1.0), hi=Math.max(...vals,1.0);
+  const sx=i=>pad+i*(W-2*pad)/(vals.length-1);
+  const sy=v=>H-pad-(v-lo)/((hi-lo)||1)*(H-2*pad);
+  const d=vals.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join(" ");
+  const y1=sy(1.0).toFixed(1);
+  const last=vals[vals.length-1];
+  const col=last>1.2?"#e3873c":last<1.0?"#2ea043":"#d29922";
+  return `<svg width="${W}" height="${H}">
+    <line x1="0" y1="${y1}" x2="${W}" y2="${y1}" stroke="#f85149" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>
+    <path d="${d}" fill="none" stroke="${col}" stroke-width="1.6"/>
+    <circle cx="${sx(vals.length-1).toFixed(1)}" cy="${sy(last).toFixed(1)}" r="2.2" fill="${col}"/>
+  </svg>`;
+}
 
-  const app = document.getElementById('app');
-  app.innerHTML = '';
+function spreadHtml(s){
+  const legs = s.legs.map(l=>{
+    const cls = l.action==="BUY"?"b":"s";
+    return `<span class="${cls}">${l.action} ${l.type} ${l.strike}</span>`;
+  }).join(" · ");
+  const be = s.breakevens.join(" / ");
+  return `<div class="spread">
+    <div class="sp-h">
+      <span class="sp-name">${s.name}</span>
+      <span class="sp-kind ${s.kind}">${s.kind==="credit"?"收 $"+s.net:"俾 $"+s.net}</span>
+      <span class="sp-view">${s.view}</span>
+      <span style="margin-left:auto" class="rrpill">R:R ${s.rr??"—"}</span>
+    </div>
+    <div class="sp-legs">${legs}　·　${s.dte}d</div>
+    <div class="sp-nums">
+      <span>max賺 <b style="color:var(--good)">$${s.max_profit}</b></span>
+      <span>max蝕 <b style="color:var(--sell)">$${s.max_loss}</b></span>
+      <span>回本 <b>${be}</b></span>
+      <span>闊度 <b>${s.width}</b></span>
+    </div>
+  </div>`;
+}
+
+function pickHtml(p){
+  const reasons=(p.reasons||[]).map(x=>`<div>• ${x}</div>`).join("");
+  return `<div class="pick">
+    <div class="pr1">
+      <span class="ptype ${p.type}">${p.type}</span>
+      <span class="pk">${p.strike}</span>
+      <span class="pexp">${p.expiry} · ${p.dte}d</span>
+      <span class="score">
+        <span class="barbox"><i style="width:${Math.max(4,p.score)}%;background:${sc(p.score)}"></i></span>
+        <span class="sval" style="color:${sc(p.score)}">${p.score}</span>
+      </span>
+    </div>
+    <div class="greeks">
+      <span>mid <b>$${p.mid}</b></span><span>IV <b>${pct(p.iv)}</b></span>
+      <span>Δ <b>${p.delta>=0?"+":""}${p.delta}</b></span><span>Γ <b>${p.gamma}</b></span>
+      <span>θ/日 <b>$${p.theta}</b></span><span>vega <b>$${p.vega}</b></span><span>OI <b>${p.oi}</b></span>
+    </div>
+    <span class="togg" onclick="this.nextElementSibling.classList.toggle('show')">▾ 點解揀佢</span>
+    <div class="why">${reasons}</div>
+  </div>`;
+}
+
+function renderCards(data){
+  const app=document.getElementById("cardView"); app.innerHTML="";
   (data.results||[]).forEach(r=>{
-    const tk = document.createElement('div');
-    tk.className='tk'; tk.dataset.side=r.side;
-    const er = r.earnings ? `<span class="er">⚠️ earnings ${r.earnings}</span>` : '';
-    const ivhv = r.iv_hv==null?'—':r.iv_hv.toFixed(2);
-    let picks = (r.picks||[]).map((p,i)=>{
-      const reasons = (p.reasons||[]).map(x=>`<div>• ${x}</div>`).join('');
-      return `<div class="pick">
-        <div class="pr1">
-          <span class="ptype ${p.type}">${p.type}</span>
-          <span class="pk">${p.strike}</span>
-          <span class="pexp">${p.expiry} · ${p.dte}d</span>
-          <span class="score">
-            <span class="bar"><i style="width:${Math.max(4,p.score)}%;background:${scoreColor(p.score)}"></i></span>
-            <span class="sval" style="color:${scoreColor(p.score)}">${p.score}</span>
-          </span>
-        </div>
-        <div class="greeks">
-          <span>mid <b>$${p.mid}</b></span>
-          <span>IV <b>${fmtPct(p.iv)}</b></span>
-          <span>Δ <b>${p.delta>=0?'+':''}${p.delta}</b></span>
-          <span>Γ <b>${p.gamma}</b></span>
-          <span>θ/日 <b>$${p.theta}</b></span>
-          <span>vega <b>$${p.vega}</b></span>
-          <span>OI <b>${p.oi}</b></span>
-        </div>
-        <span class="togg" onclick="this.nextElementSibling.classList.toggle('show')">▾ 點解揀佢</span>
-        <div class="why">${reasons}</div>
-      </div>`;
-    }).join('');
-    if(!picks) picks = `<div class="empty">冇合條件嘅候選(流動性/DTE/Delta 過濾後)。</div>`;
-
-    tk.innerHTML = `
+    const tk=document.createElement("div"); tk.className="tk"; tk.dataset.side=r.side;
+    const er=r.earnings?`<span class="er">⚠️ earnings ${r.earnings}</span>`:"";
+    const ivhv=r.iv_hv==null?"—":r.iv_hv.toFixed(2);
+    const picks=(r.picks||[]).map(pickHtml).join("")||`<div class="empty">冇合條件嘅候選。</div>`;
+    const spreads=(r.spreads&&r.spreads.length)
+      ? `<div class="sec-t">Spread 組合(defined-risk)</div><div class="spreads">${r.spreads.map(spreadHtml).join("")}</div>`
+      : "";
+    const sp=sparkline(HIST[r.ticker]);
+    tk.innerHTML=`
       <div class="tk-head">
-        <div>
-          <div class="tk-name">${r.ticker}</div>
-          <div class="tk-spot">$${r.spot} · ATR ${r.atr??'—'} · HV20 ${fmtPct(r.hv20)} · HVR ${r.hv_rank??'—'}</div>
-        </div>
+        <div><div class="tk-name">${r.ticker}</div>
+          <div class="tk-spot">$${r.spot} · ATR ${r.atr??"—"} · HV20 ${pct(r.hv20)} · HVR ${r.hv_rank??"—"}</div></div>
         <span class="badge ${r.side}">${r.side}</span>
       </div>
       <div class="stat">
-        <span>ATM-IV <b>${fmtPct(r.atm_iv)}</b></span>
-        <span>IV/HV <b>${ivhv}</b></span>
-        ${er}
+        <span>ATM-IV <b>${pct(r.atm_iv)}</b></span><span>IV/HV <b>${ivhv}</b></span>${er}
+        ${sp?`<span class="spark"><span class="lbl">IV/HV趨勢</span>${sp}</span>`:""}
       </div>
-      <div class="exit">${EXIT[r.side]||''}</div>
-      <div class="picks">${picks}</div>`;
+      <div class="exit">${EXIT[r.side]||""}</div>
+      <div class="sec-t">最高分候選合約</div>
+      <div class="picks">${picks}</div>
+      ${spreads}`;
     app.appendChild(tk);
   });
+}
 
-  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
-    c.classList.add('on');
-    const f=c.dataset.f;
-    document.querySelectorAll('.tk').forEach(tk=>{
-      tk.style.display = (f==='ALL'||tk.dataset.side===f)?'':'none';
-    });
+let sortKey="score", sortAsc=false, FLAT=[];
+function renderTable(){
+  const cols=[["ticker","標的"],["side","方向"],["type","C/P"],["strike","行使"],
+    ["dte","DTE"],["score","分數"],["delta","Δ"],["iv","IV"],["mid","Mid"]];
+  const rows=[...FLAT].sort((a,b)=>{
+    let x=a[sortKey],y=b[sortKey];
+    if(typeof x==="string"){return sortAsc?x.localeCompare(y):y.localeCompare(x);}
+    return sortAsc?x-y:y-x;
+  });
+  const th=cols.map(([k,l])=>`<th data-k="${k}" class="${k===sortKey?(sortAsc?'asc':'sorted'):''}">${l}</th>`).join("");
+  const tr=rows.map(r=>`<tr>
+    <td>${r.ticker}</td><td><span class="mini ${r.side}">${r.side}</span></td>
+    <td><span class="mini ${r.type}">${r.type}</span></td><td>${r.strike}</td>
+    <td>${r.dte}</td><td style="color:${sc(r.score)};font-weight:800">${r.score}</td>
+    <td>${r.delta>=0?"+":""}${r.delta}</td><td>${pct(r.iv)}</td><td>$${r.mid}</td></tr>`).join("");
+  document.getElementById("tableView").innerHTML=`<table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
+  document.querySelectorAll("#tableView th").forEach(h=>h.onclick=()=>{
+    const k=h.dataset.k;
+    if(k===sortKey)sortAsc=!sortAsc; else {sortKey=k;sortAsc=false;}
+    renderTable();
+  });
+}
+
+function render(data){
+  const m=document.getElementById("meta");
+  m.innerHTML=`<span class="src ${(data.source||'').includes('LIVE')?'LIVE':'demo'}">${data.source||'?'}</span>`
+    +`更新:${data.generated_at||'—'} · DTE ${data.config?.min_dte}-${data.config?.max_dte}`
+    +` · <button class="refresh" onclick="location.reload()">↻ 重新整理</button>`;
+  document.getElementById("bar").style.display="flex";
+  FLAT=[];
+  (data.results||[]).forEach(r=>(r.picks||[]).forEach(p=>FLAT.push({ticker:r.ticker,side:r.side,...p})));
+  renderCards(data); renderTable();
+
+  document.querySelectorAll('.chip[data-f]').forEach(c=>c.onclick=()=>{
+    document.querySelectorAll('.chip[data-f]').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on'); const f=c.dataset.f;
+    document.querySelectorAll('.tk').forEach(tk=>tk.style.display=(f==='ALL'||tk.dataset.side===f)?'':'none');
+  });
+  document.querySelectorAll('.chip[data-v]').forEach(c=>c.onclick=()=>{
+    document.querySelectorAll('.chip[data-v]').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on'); const v=c.dataset.v;
+    document.getElementById("cardView").style.display=v==='cards'?'block':'none';
+    document.getElementById("tableView").style.display=v==='table'?'block':'none';
   });
 }
 
 function showError(){
-  document.getElementById('meta').textContent='';
-  document.getElementById('app').innerHTML =
-    `<div class="err"><b>讀唔到數據</b><br>
-     先跑:<code>python options_screener.py --demo --tickers AAPL NVDA KO SPY --json options_data.json</code><br>
-     再用 GitHub Pages(https) 開呢頁;或本地用 <code>python -m http.server</code> 開,
-     <code>options_data.js</code> 亦會自動 fallback。</div>`;
+  document.getElementById("meta").textContent="";
+  document.getElementById("cardView").innerHTML=
+    `<div class="err"><b>讀唔到數據</b><br>先跑:
+     <code>python options_screener.py --demo --tickers AAPL NVDA KO SPY --json options_data.json --history options_history.json --demo-history 60</code><br>
+     再用 GitHub Pages(https) 或本地 <code>python -m http.server</code> 開。</div>`;
 }
 
-// 1) 試 fetch JSON(GitHub Pages / http server 正路)
-fetch('options_data.json?v='+Date.now())
-  .then(r=>{ if(!r.ok) throw 0; return r.json(); })
-  .then(render)
-  // 2) fetch 失敗(file://) → 用 options_data.js 注入嘅全域變數
-  .catch(()=> window.OPTIONS_DATA ? render(window.OPTIONS_DATA) : showError());
+// 載入歷史(fetch 失敗 → 用 options_history.js 全域變數)
+fetch('options_history.json?v='+Date.now()).then(r=>r.ok?r.json():Promise.reject())
+  .then(h=>HIST=h).catch(()=>{HIST=window.OPTIONS_HISTORY||{};})
+  // 之後載入主數據
+  .finally(()=>{
+    fetch('options_data.json?v='+Date.now()).then(r=>r.ok?r.json():Promise.reject())
+      .then(render).catch(()=>window.OPTIONS_DATA?render(window.OPTIONS_DATA):showError());
+  });
 </script>
 </body>
 </html>

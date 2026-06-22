@@ -514,7 +514,119 @@ def screen_ticker(provider: DataProvider, ticker: str,
         if s:
             scored.append(s)
     scored.sort(key=lambda x: x.score, reverse=True)
-    return u, scored[:cfg.top_n]
+    return u, scored[:cfg.top_n], chain
+
+
+# ----------------------------------------------------------------------------
+# 5b) Spread 組合(defined-risk):vertical + iron condor
+# ----------------------------------------------------------------------------
+
+def _nearest_by_delta(chain, expiry, is_call, target_abs_delta):
+    cands = [c for c in chain
+             if c.expiry == expiry and c.is_call == is_call
+             and c.greeks and c.mid > 0]
+    if not cands:
+        return None
+    return min(cands, key=lambda c: abs(abs(c.greeks.delta) - target_abs_delta))
+
+
+def _pick_expiry(chain, target_dte=40):
+    exps = {c.expiry for c in chain if c.mid > 0}
+    if not exps:
+        return None
+    return min(exps, key=lambda e: abs((e - date.today()).days - target_dte))
+
+
+def _leg(c, action):
+    return {"action": action, "type": "CALL" if c.is_call else "PUT",
+            "strike": c.strike, "mid": round(c.mid, 2),
+            "delta": round(c.greeks.delta, 2)}
+
+
+def _vertical(long_leg, short_leg, debit: bool, name: str, view: str):
+    if not long_leg or not short_leg:
+        return None
+    width = abs(short_leg.strike - long_leg.strike)
+    if width <= 0:
+        return None
+    if debit:
+        net = long_leg.mid - short_leg.mid          # 你俾(成本)
+        if net <= 0.01:
+            return None
+        max_loss, max_profit = net, width - net
+        # 看升用 call:BE=長腳+net;看跌用 put:BE=長腳-net
+        be = (long_leg.strike + net) if long_leg.is_call else (long_leg.strike - net)
+        kind = "debit"
+    else:
+        net = short_leg.mid - long_leg.mid          # 你收(credit)
+        if net <= 0.01:
+            return None
+        max_loss, max_profit = width - net, net
+        be = (short_leg.strike - net) if not short_leg.is_call else (short_leg.strike + net)
+        kind = "credit"
+    rr = round(max_profit / max_loss, 2) if max_loss > 0 else None
+    return {
+        "name": name, "view": view, "kind": kind,
+        "legs": [_leg(long_leg, "BUY"), _leg(short_leg, "SELL")],
+        "net": round(net, 2), "width": round(width, 2),
+        "max_profit": round(max_profit, 2), "max_loss": round(max_loss, 2),
+        "rr": rr, "breakevens": [round(be, 2)],
+        "expiry": long_leg.expiry.isoformat(), "dte": long_leg.dte,
+    }
+
+
+def build_spreads(chain, side: str, spot: float) -> list[dict]:
+    """side=buy → debit vertical(看升/看跌);side=sell → credit vertical + iron condor。"""
+    exp = _pick_expiry(chain)
+    if not exp:
+        return []
+    out = []
+    if side == "buy":
+        # Bull Call Spread:長0.60 call / 短0.30 call
+        lc = _nearest_by_delta(chain, exp, True, 0.60)
+        sc = _nearest_by_delta(chain, exp, True, 0.30)
+        if lc and sc and sc.strike > lc.strike:
+            v = _vertical(lc, sc, True, "Bull Call Spread", "溫和看升")
+            if v: out.append(v)
+        # Bear Put Spread:長0.60 put / 短0.30 put
+        lp = _nearest_by_delta(chain, exp, False, 0.60)
+        sp = _nearest_by_delta(chain, exp, False, 0.30)
+        if lp and sp and sp.strike < lp.strike:
+            v = _vertical(lp, sp, True, "Bear Put Spread", "溫和看跌")
+            if v: out.append(v)
+    else:
+        # Bull Put Spread(credit):短0.25 put / 長0.12 put
+        sp = _nearest_by_delta(chain, exp, False, 0.25)
+        lp = _nearest_by_delta(chain, exp, False, 0.12)
+        bull_put = None
+        if sp and lp and lp.strike < sp.strike:
+            bull_put = _vertical(lp, sp, False, "Bull Put Spread", "看唔跌(收租)")
+            if bull_put: out.append(bull_put)
+        # Bear Call Spread(credit):短0.25 call / 長0.12 call
+        sc = _nearest_by_delta(chain, exp, True, 0.25)
+        lc = _nearest_by_delta(chain, exp, True, 0.12)
+        bear_call = None
+        if sc and lc and lc.strike > sc.strike:
+            bear_call = _vertical(lc, sc, False, "Bear Call Spread", "看唔升(收租)")
+            if bear_call: out.append(bear_call)
+        # Iron Condor:put credit + call credit 合體(中性收租)
+        if bull_put and bear_call:
+            credit = bull_put["net"] + bear_call["net"]
+            width = max(bull_put["width"], bear_call["width"])
+            max_loss = width - credit
+            out.append({
+                "name": "Iron Condor", "view": "預期橫行(中性收租)", "kind": "credit",
+                "legs": bull_put["legs"] + bear_call["legs"],
+                "net": round(credit, 2), "width": round(width, 2),
+                "max_profit": round(credit, 2),
+                "max_loss": round(max_loss, 2),
+                "rr": round(credit / max_loss, 2) if max_loss > 0 else None,
+                "breakevens": [round(sp.strike - credit, 2),
+                               round(sc.strike + credit, 2)],
+                "expiry": exp.isoformat(),
+                "dte": (exp - date.today()).days,
+            })
+    return out
 
 
 # ----------------------------------------------------------------------------
@@ -589,10 +701,10 @@ class SampleProvider(DataProvider):
                 continue
             exp = date.today() + timedelta(days=dte)
             T = dte / 365
-            # strike 由 -25% 到 +25%,每 ~2.5% 一格
+            # strike 由 -40% 到 +40%,每 ~2.5% 一格(夠闊砌到遠OTM spread)
             step = max(1.0, round(spot * 0.025))
-            k = round((spot * 0.75) / step) * step
-            while k <= spot * 1.25:
+            k = round((spot * 0.60) / step) * step
+            while k <= spot * 1.40:
                 moneyness = math.log(k / spot)
                 # IV smile:離 ATM 越遠 IV 越高;put skew
                 smile = u.atm_iv * (1 + 1.8 * moneyness**2)
@@ -664,7 +776,8 @@ def _safe(x):
     return None if (isinstance(x, float) and math.isnan(x)) else x
 
 
-def result_to_dict(u: Underlying, side: str, top: list[Scored]) -> dict:
+def result_to_dict(u: Underlying, side: str, top: list[Scored],
+                   spreads: list[dict] | None = None) -> dict:
     iv_hv = (u.atm_iv / u.hv20) if (u.hv20 and not math.isnan(u.atm_iv)) else None
     picks = []
     for s in top:
@@ -690,6 +803,7 @@ def result_to_dict(u: Underlying, side: str, top: list[Scored]) -> dict:
         "earnings": u.next_earnings.isoformat() if u.next_earnings else None,
         "side": side.upper(),
         "picks": picks,
+        "spreads": spreads or [],
     }
 
 
@@ -720,6 +834,72 @@ def export_json(path: str, results: list[dict], cfg: ScreenConfig, demo: bool):
         print(f"已寫 JS  → {js_path}")
 
 
+def append_history(path: str, results: list[dict], cap: int = 180):
+    """
+    每日 append 一個 snapshot(per ticker: iv_hv / atm_iv / 最高分),
+    畀 dashboard 畫趨勢圖。同一日重複跑會覆蓋當日。
+    """
+    import json
+    today = datetime.now().strftime("%Y-%m-%d")
+    hist = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            hist = json.load(f)
+    except (FileNotFoundError, ValueError):
+        hist = {}
+    for r in results:
+        rows = hist.setdefault(r["ticker"], [])
+        best = max((p["score"] for p in r["picks"]), default=None)
+        rows = [x for x in rows if x.get("date") != today]   # 去重當日
+        rows.append({"date": today, "iv_hv": r.get("iv_hv"),
+                     "atm_iv": r.get("atm_iv"), "hv20": r.get("hv20"),
+                     "best_score": best, "side": r.get("side")})
+        hist[r["ticker"]] = rows[-cap:]
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(hist, f, ensure_ascii=False, indent=2)
+    print(f"已更新歷史 → {path}")
+    if path.endswith(".json"):
+        with open(path[:-5] + ".js", "w", encoding="utf-8") as f:
+            f.write("window.OPTIONS_HISTORY = ")
+            json.dump(hist, f, ensure_ascii=False)
+            f.write(";\n")
+
+
+def gen_demo_history(path: str, tickers: list[str], cfg: ScreenConfig, n: int):
+    """fabricate N 日合成歷史(demo 用),令趨勢圖有嘢睇。"""
+    import json, random
+    from datetime import timedelta
+    prov = SampleProvider(r=cfg.r)
+    hist = {}
+    for tk in tickers:
+        try:
+            u = prov.get_underlying(tk)
+        except Exception:
+            continue
+        side = decide_side(u, cfg)
+        base_ivhv = (u.atm_iv / u.hv20) if (u.hv20 and not math.isnan(u.atm_iv)) else 1.0
+        rng = random.Random(sum(ord(c) for c in tk.upper()))
+        rows, ivhv, iv = [], base_ivhv, u.atm_iv
+        score = 70 + rng.uniform(-5, 10)
+        for d in range(n, 0, -1):
+            day = (datetime.now() - timedelta(days=d)).strftime("%Y-%m-%d")
+            ivhv = max(0.6, ivhv + rng.gauss(0, 0.04))
+            iv = max(0.05, iv + rng.gauss(0, 0.01))
+            score = min(100, max(40, score + rng.gauss(0, 4)))
+            rows.append({"date": day, "iv_hv": round(ivhv, 2),
+                         "atm_iv": round(iv, 4), "hv20": round(u.hv20, 4),
+                         "best_score": round(score, 1), "side": side.upper()})
+        hist[u.ticker] = rows
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(hist, f, ensure_ascii=False, indent=2)
+    if path.endswith(".json"):
+        with open(path[:-5] + ".js", "w", encoding="utf-8") as f:
+            f.write("window.OPTIONS_HISTORY = ")
+            json.dump(hist, f, ensure_ascii=False)
+            f.write(";\n")
+    print(f"已生成 demo 歷史({n}日) → {path}")
+
+
 def build_provider(args) -> DataProvider:
     if args.demo:
         return SampleProvider(r=args.rate)
@@ -745,6 +925,10 @@ def main(argv=None):
     p.add_argument("--tradier-live", action="store_true")
     p.add_argument("--json", default=None,
                    help="同時匯出結果做 JSON(畀 dashboard 網站用)")
+    p.add_argument("--history", default=None,
+                   help="append 每日 snapshot 落呢個 JSON(畫趨勢圖)")
+    p.add_argument("--demo-history", type=int, default=0, metavar="N",
+                   help="(demo)生成 N 日合成歷史落 --history 指定嘅檔")
     args = p.parse_args(argv)
 
     cfg = ScreenConfig(side=args.side, min_dte=args.min_dte,
@@ -753,20 +937,26 @@ def main(argv=None):
                        r=args.rate, top_n=args.top)
     provider = build_provider(args)
 
+    if args.demo_history and args.history:
+        gen_demo_history(args.history, args.tickers, cfg, args.demo_history)
+
     print("\n⚠️  教育用途,非投資建議。"
           + ("  [DEMO:合成數據]" if args.demo else "  [LIVE 數據]") + "\n")
     results = []
     for tk in args.tickers:
         try:
-            u, top = screen_ticker(provider, tk, cfg)
+            u, top, chain = screen_ticker(provider, tk, cfg)
             side = decide_side(u, cfg)
             print_report(u, side, top)
-            results.append(result_to_dict(u, side, top))
+            spreads = build_spreads(chain, side, u.spot)
+            results.append(result_to_dict(u, side, top, spreads))
         except Exception as e:
             print(f"[{tk}] 出錯: {e}", file=sys.stderr)
 
     if args.json:
         export_json(args.json, results, cfg, args.demo)
+    if args.history:
+        append_history(args.history, results)
 
 
 if __name__ == "__main__":

@@ -7,8 +7,9 @@
 | `options_screener.py` | 真·可跑嘅 Python screener（ATR + IV/HV + Greeks 評分排序） |
 | `make_excel_template.py` | 生成 Excel/Google Sheets 模板（公式自動計分） |
 | `options_screener_template.xlsx` | 上面生成出嚟嘅模板成品 |
-| `options.html` | 📱 每日㩒入去睇嘅 dashboard 網站 |
+| `options.html` | 📱 每日㩒入去睇嘅 dashboard 網站（卡片+spread+趨勢線+總覽表） |
 | `options_data.json` / `.js` | dashboard 讀嘅數據（screener 生成） |
+| `options_history.json` / `.js` | 每日 IV/HV/分數歷史（畫趨勢線） |
 | `.github/workflows/options-daily.yml` | 每日自動跑 screener + 更新網站 |
 | `demo_output.txt` | 離線 demo 嘅實際輸出（畀你預覽個樣） |
 
@@ -96,10 +97,23 @@ python make_excel_template.py     # 出 options_screener_template.xlsx
 `options.html` 係一個靜態網頁,讀 `options_data.json` 顯示：每隻標的嘅 BUY/SELL badge、
 最高分候選合約、Greeks、評分條、同進出場提示。手機都睇得舒服,仲可以篩 BUY/SELL。
 
+**dashboard 功能**：
+- 每隻標的卡片：BUY/SELL badge、最高分候選合約（Greeks + 評分條）
+- **Spread 組合**（defined-risk）：自動砌 Bull/Bear vertical + Iron Condor,顯示
+  max賺 / max蝕 / R:R / 回本價 / 闊度,賣方唔使裸沽
+- **IV/HV 趨勢線**（sparkline,紅虛線=1.0 買賣分界）
+- **總覽表**：所有標的候選一個表,點欄位標題即排序
+- 篩 BUY/SELL、卡片/表格切換
+
 ### 數據點嚟
 ```bash
-# 加 --json 就會順手寫埋 options_data.json + options_data.js
-python options_screener.py --tickers AAPL MSFT NVDA SPY --json options_data.json
+# --json 寫 options_data.json/.js;--history 累積每日趨勢
+python options_screener.py --tickers AAPL MSFT NVDA SPY \
+    --json options_data.json --history options_history.json
+
+# 第一次想趨勢線即刻有嘢睇,可補 demo 歷史(只限 --demo):
+python options_screener.py --demo --tickers AAPL NVDA KO SPY \
+    --json options_data.json --history options_history.json --demo-history 60
 ```
 
 ### 三種開法

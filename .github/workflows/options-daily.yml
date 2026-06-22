@@ -37,14 +37,14 @@ jobs:
         run: |
           python options_screener.py --tickers $TICKERS \
             --side auto --min-dte 30 --max-dte 60 --top 5 \
-            --json options_data.json
+            --json options_data.json --history options_history.json
 
       - name: Commit 更新(有變先 commit)
         run: |
           git config user.name  "options-bot"
           git config user.email "actions@github.com"
-          if [ -n "$(git status --porcelain options_data.json options_data.js)" ]; then
-            git add options_data.json options_data.js
+          git add options_data.json options_data.js options_history.json options_history.js
+          if [ -n "$(git diff --cached --name-only)" ]; then
             git commit -m "chore: 每日更新期權 dashboard 數據 [skip ci]"
             git push
           else
