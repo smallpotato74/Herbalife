@@ -1,0 +1,16 @@
+{
+  "_說明": "改名做 email_config.json 再填。Gmail 要用 App Password(16位),唔係你平時嘅密碼。",
+  "SMTP_HOST": "smtp.gmail.com",
+  "SMTP_PORT": "587",
+  "SMTP_USER": "lilokhin6@gmail.com",
+  "SMTP_PASS": "你嘅16位App Password(去 myaccount.google.com/apppasswords 整)",
+  "EMAIL_TO": "lilokhin6@gmail.com",
+
+  "SCORE_THRESHOLD": 80,
+  "ALERT_SIDES": "BUY,SELL",
+  "tickers": ["AAPL", "MSFT", "NVDA", "SPY", "QQQ", "AMD", "GOOGL", "META"],
+  "min_dte": 30,
+  "max_dte": 60,
+  "top": 5,
+  "force": false
+}

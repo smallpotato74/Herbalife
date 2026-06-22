@@ -11,6 +11,8 @@
 | `options_data.json` / `.js` | dashboard 讀嘅數據（screener 生成） |
 | `options_history.json` / `.js` | 每日 IV/HV/分數歷史（畫趨勢線） |
 | `notify.py` | 高分 setup 通知（Telegram / Email / Webhook） |
+| `daily_alert.py` | 一撳就跑：篩選 + 寄 email（本地排程用，唔使 GitHub） |
+| `email_config.example.json` | email 設定範本（改名做 `email_config.json` 再填） |
 | `.github/workflows/options-daily.yml` | 每日自動跑 screener + 更新網站 |
 | `demo_output.txt` | 離線 demo 嘅實際輸出（畀你預覽個樣） |
 
@@ -166,6 +168,35 @@ python notify.py options_data.json
 
 GitHub Actions 已加咗通知 step。喺 repo **Settings → Secrets and variables → Actions**
 加 `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`(或 `WEBHOOK_URL`,或 `SMTP_*`+`EMAIL_TO`)就會每日自動 ping 你。
+
+---
+
+## 🕗 逢一至五 20:30 HKT 自動寄 Email(唔使 GitHub)
+
+`daily_alert.py` 一個 script 做晒:篩選 → 寫數據 → 寄 email 入你 Gmail。
+跑喺**你部機**,用系統排程器定時。
+
+### 設定(一次過)
+1. `email_config.example.json` → 改名做 `email_config.json`,填入 Gmail **App Password**
+   (去 `myaccount.google.com/apppasswords` 整,要先開兩步驗證)。
+2. 先測試(用合成數據,即刻寄一封畀你睇):把 config 設 `"demo": true` → `python daily_alert.py`
+   → 收到 email = 成功 → 再改返 `"demo": false`。
+3. 設排程(逢一至五 20:30,部機要嗰時著機 + 連網):
+
+**Windows(Task Scheduler,PowerShell 跑一次):**
+```powershell
+schtasks /create /tn "OptionsAlert" /sc weekly /d MON,TUE,WED,THU,FRI /st 20:30 ^
+  /tr "python C:\路徑\daily_alert.py"
+```
+
+**Mac / Linux(crontab -e 加一行;部機要係 HK 時區):**
+```
+30 20 * * 1-5 cd /路徑/Herbalife && /usr/bin/python3 daily_alert.py >> alert.log 2>&1
+```
+
+> ⏰ 20:30 = `30 20`。部機嘅時區要係香港(UTC+8)先啱鐘。
+> 部機嗰刻一定要**著機 + 連網**,排程先跑到(關機/瞓著就唔會)。
+> ⚠️ 提你:20:30 HKT 美股仲未開市,數據係**上一個美股收市**嘅,適合做收市後篩選。
 
 ---
 
