@@ -1,2 +1,4 @@
 # 唔好 commit 你嘅 email/密碼設定
 email_config.json
+
+__pycache__/
