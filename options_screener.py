@@ -630,6 +630,87 @@ def build_spreads(chain, side: str, spot: float) -> list[dict]:
 
 
 # ----------------------------------------------------------------------------
+# 5c) 預測 P&L 分析:payoff 曲線 + 回本 + max賺蝕 + POP(獲利機率)
+# ----------------------------------------------------------------------------
+MULT = 100  # 美股期權 1 張 = 100 股
+
+
+def _prob_above(S0, K, T, iv, r):
+    """lognormal 下 P(S_T > K)。"""
+    if T <= 0 or iv <= 0 or S0 <= 0 or K <= 0:
+        return 1.0 if S0 > K else 0.0
+    d = (math.log(S0 / K) + (r - 0.5 * iv * iv) * T) / (iv * math.sqrt(T))
+    return _norm_cdf(d)
+
+
+def _curve(fn, lo, hi, n=41):
+    return [[round(lo + (hi - lo) * i / (n - 1), 2),
+             round(fn(lo + (hi - lo) * i / (n - 1)), 1)] for i in range(n)]
+
+
+def pnl_for_pick(c: OptionContract, side: str, spot: float, r: float) -> dict:
+    """單腿期權(buy=long / sell=short)嘅到期 P&L(每張,×100)。"""
+    K, prem, T, iv = c.strike, c.mid, c.dte / 365, c.iv
+    long = (side == "buy")
+    if c.is_call:
+        be = K + prem
+        if long:
+            fn = lambda S: (max(S - K, 0) - prem) * MULT
+            ml, mp, pop = prem * MULT, None, _prob_above(spot, be, T, iv, r)
+        else:
+            fn = lambda S: (prem - max(S - K, 0)) * MULT
+            ml, mp, pop = None, prem * MULT, 1 - _prob_above(spot, be, T, iv, r)
+    else:
+        be = K - prem
+        if long:
+            fn = lambda S: (max(K - S, 0) - prem) * MULT
+            ml, mp, pop = prem * MULT, (K - prem) * MULT, 1 - _prob_above(spot, be, T, iv, r)
+        else:
+            fn = lambda S: (prem - max(K - S, 0)) * MULT
+            ml, mp, pop = (K - prem) * MULT, prem * MULT, _prob_above(spot, be, T, iv, r)
+    emove = spot * iv * math.sqrt(T)
+    return {
+        "long": long, "breakeven": round(be, 2),
+        "max_loss": (round(ml) if ml is not None else None),
+        "max_profit": (round(mp) if mp is not None else None),
+        "pop": round(pop * 100),
+        "emove": round(emove, 2),
+        "band": [round(spot - emove, 2), round(spot + emove, 2)],
+        "curve": _curve(fn, spot * 0.8, spot * 1.2),
+    }
+
+
+def pnl_for_spread(s: dict, spot: float, iv: float, r: float) -> dict:
+    """multi-leg spread 到期 P&L + POP(用合成 payoff,通用 condor/vertical)。"""
+    T = s["dte"] / 365
+    legs = s["legs"]
+    cash = sum((l["mid"] if l["action"] == "SELL" else -l["mid"]) for l in legs)
+
+    def pnl(S):
+        tot = 0.0
+        for l in legs:
+            intr = max(S - l["strike"], 0) if l["type"] == "CALL" else max(l["strike"] - S, 0)
+            tot += intr if l["action"] == "BUY" else -intr
+        return (tot + cash) * MULT
+
+    # POP:積分 lognormal 喺獲利區間(範圍開闊啲捉住尾巴)
+    lo_i, hi_i, steps = spot * 0.3, spot * 2.2, 600
+    pop = 0.0
+    for i in range(steps):
+        a = lo_i + (hi_i - lo_i) * i / steps
+        b = lo_i + (hi_i - lo_i) * (i + 1) / steps
+        if pnl((a + b) / 2) > 0:
+            pop += (1 - _prob_above(spot, b, T, iv, r)) - (1 - _prob_above(spot, a, T, iv, r))
+    emove = spot * iv * math.sqrt(T)
+    return {
+        "pop": round(max(0, min(100, pop * 100))),
+        "emove": round(emove, 2),
+        "band": [round(spot - emove, 2), round(spot + emove, 2)],
+        "curve": _curve(pnl, spot * 0.8, spot * 1.2),
+    }
+
+
+# ----------------------------------------------------------------------------
 # 6) 離線 Demo Provider(合成數據,無網都跑到)
 # ----------------------------------------------------------------------------
 
@@ -777,7 +858,7 @@ def _safe(x):
 
 
 def result_to_dict(u: Underlying, side: str, top: list[Scored],
-                   spreads: list[dict] | None = None) -> dict:
+                   spreads: list[dict] | None = None, r: float = 0.045) -> dict:
     iv_hv = (u.atm_iv / u.hv20) if (u.hv20 and not math.isnan(u.atm_iv)) else None
     picks = []
     for s in top:
@@ -792,7 +873,11 @@ def result_to_dict(u: Underlying, side: str, top: list[Scored],
             "oi": c.open_interest, "volume": c.volume,
             "spread_pct": round(c.spread_pct, 3),
             "reasons": s.reasons,
+            "pnl": pnl_for_pick(c, side, u.spot, r),
         })
+    iv_ref = u.atm_iv if not math.isnan(u.atm_iv) else 0.3
+    for sp in (spreads or []):
+        sp["pnl"] = pnl_for_spread(sp, u.spot, iv_ref, r)
     return {
         "ticker": u.ticker, "spot": round(u.spot, 2),
         "atr": _safe(round(u.atr, 2) if not math.isnan(u.atr) else float("nan")),
@@ -949,7 +1034,7 @@ def main(argv=None):
             side = decide_side(u, cfg)
             print_report(u, side, top)
             spreads = build_spreads(chain, side, u.spot)
-            results.append(result_to_dict(u, side, top, spreads))
+            results.append(result_to_dict(u, side, top, spreads, cfg.r))
         except Exception as e:
             print(f"[{tk}] 出錯: {e}", file=sys.stderr)
 

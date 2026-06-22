@@ -116,6 +116,28 @@
     padding:14px;border-radius:12px;font-size:13px;line-height:1.7}
   .refresh{background:none;border:1px solid var(--line);color:var(--dim);
     border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .pnl-link{font-size:11px;color:var(--good);cursor:pointer;margin-left:10px}
+  .pop{font-size:11px;color:var(--dim)}
+  .pop b{color:var(--txt)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;
+    display:none;align-items:flex-end;justify-content:center}
+  .overlay.show{display:flex}
+  .modal{background:var(--card);border:1px solid var(--line);
+    border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:88vh;
+    overflow:auto;padding:16px}
+  @media(min-width:560px){.overlay{align-items:center}.modal{border-radius:16px}}
+  .modal h3{margin:0 0 2px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .modal .x{margin-left:auto;color:var(--dim);cursor:pointer;font-size:22px;line-height:1}
+  .modal .sub{font-size:12px;color:var(--dim);margin-bottom:10px}
+  .kpi{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .kpi div{background:var(--card2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--dim)}
+  .kpi b{display:block;font-size:15px;color:var(--txt);margin-top:2px}
+  .chartbox{width:100%;overflow:hidden;border-radius:10px;background:#0c1117;padding:6px}
+  .legend{font-size:11px;color:var(--dim);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:3px;vertical-align:middle;margin-right:4px}
+  .clickable{cursor:pointer}
 </style>
 </head>
 <body>
@@ -144,6 +166,10 @@
   方向:IV/HV&lt;1.0 偏 BUY、&gt;1.2 偏 SELL。分數滿分 100。Spread 已 defined-risk,
   max 風險/回報已計。趨勢線係 IV/HV 走勢(紅虛線=1.0 分界)。
 </footer>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
 
 <script src="options_data.js" onerror="window.__noData=1"></script>
 <script src="options_history.js" onerror="window.__noHist=1"></script>
@@ -176,12 +202,121 @@ function sparkline(rows){
   </svg>`;
 }
 
-function spreadHtml(s){
+// ---- P&L payoff 圖(SVG) ----
+function payoffChart(pnl, spot, label){
+  const c=pnl.curve; const W=520,H=240,L=46,R=12,Tp=12,B=26;
+  const xs=c.map(p=>p[0]), ys=c.map(p=>p[1]);
+  const xmin=Math.min(...xs),xmax=Math.max(...xs);
+  let ymin=Math.min(...ys,0),ymax=Math.max(...ys,0);
+  const padY=(ymax-ymin)*0.08||1; ymin-=padY; ymax+=padY;
+  const X=v=>L+(v-xmin)/((xmax-xmin)||1)*(W-L-R);
+  const Y=v=>Tp+(ymax-v)/((ymax-ymin)||1)*(H-Tp-B);
+  // 拆正負段上色
+  let segs=[],cur=null;
+  c.forEach(p=>{const pos=p[1]>=0;
+    if(!cur||cur.pos!==pos){cur={pos,pts:[]};segs.push(cur);}
+    cur.pts.push(p);});
+  const path=seg=>seg.pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  const area=seg=>`M${X(seg.pts[0][0]).toFixed(1)} ${Y(0).toFixed(1)} `
+    +seg.pts.map(p=>"L"+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ")
+    +` L${X(seg.pts[seg.pts.length-1][0]).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+  const y0=Y(0).toFixed(1);
+  const band=pnl.band?`<rect x="${X(pnl.band[0]).toFixed(1)}" y="${Tp}" width="${(X(pnl.band[1])-X(pnl.band[0])).toFixed(1)}" height="${H-Tp-B}" fill="#2f81f7" opacity=".07"/>`:"";
+  const bes=(pnl.breakevens||(pnl.breakeven!=null?[pnl.breakeven]:[])).map(be=>
+    `<line x1="${X(be).toFixed(1)}" y1="${Tp}" x2="${X(be).toFixed(1)}" y2="${H-B}" stroke="#d29922" stroke-width="1" stroke-dasharray="3 3"/>
+     <text x="${X(be).toFixed(1)}" y="${H-B+16}" fill="#d29922" font-size="10" text-anchor="middle">BE ${be}</text>`).join("");
+  const yticks=[ymax,(ymax+ymin)/2,ymin].map(v=>
+    `<text x="${L-6}" y="${Y(v)+3}" fill="#8b97a6" font-size="10" text-anchor="end">${Math.round(v)}</text>
+     <line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="#2d3845" stroke-width=".5"/>`).join("");
+  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%">
+    ${band}${yticks}
+    <line x1="${L}" y1="${y0}" x2="${W-R}" y2="${y0}" stroke="#3d4a5a" stroke-width="1"/>
+    ${segs.map(s=>`<path d="${area(s)}" fill="${s.pos?'#2ea043':'#f85149'}" opacity=".15"/>`).join("")}
+    ${segs.map(s=>`<path d="${path(s)}" fill="none" stroke="${s.pos?'#2ea043':'#f85149'}" stroke-width="2"/>`).join("")}
+    ${bes}
+    <line x1="${X(spot).toFixed(1)}" y1="${Tp}" x2="${X(spot).toFixed(1)}" y2="${H-B}" stroke="#fff" stroke-width="1" opacity=".5"/>
+    <text x="${X(spot).toFixed(1)}" y="${Tp+10}" fill="#fff" font-size="10" text-anchor="middle" opacity=".7">現價 ${spot}</text>
+    <text x="${L}" y="${H-B+16}" fill="#8b97a6" font-size="10">${xmin}</text>
+    <text x="${W-R}" y="${H-B+16}" fill="#8b97a6" font-size="10" text-anchor="end">${xmax}</text>
+  </svg></div>
+  <div class="legend"><span>到期 P&L(每張×100)</span>
+    <span><i style="background:#2ea043"></i>賺</span><span><i style="background:#f85149"></i>蝕</span>
+    <span><i style="background:#2f81f7;height:10px"></i>±1σ 預期區間</span></div>`;
+}
+
+function openPnl(title,sub,pnl,spot){
+  const fmt=v=>v==null?"無上限":("$"+v.toLocaleString());
+  const kpi=`<div class="kpi">
+    <div>獲利機率 POP<b>${pnl.pop}%</b></div>
+    <div>回本價<b>${(pnl.breakevens||[pnl.breakeven]).join(" / ")}</b></div>
+    <div>最大賺<b style="color:var(--good)">${fmt(pnl.max_profit)}</b></div>
+    <div>最大蝕<b style="color:var(--sell)">${fmt(pnl.max_loss)}</b></div>
+    <div>±1σ 區間<b>${pnl.band[0]} ~ ${pnl.band[1]}</b></div></div>`;
+  showModal(`<h3>📈 P&L 預測 · ${title}<span class="x" onclick="closeModal()">×</span></h3>
+    <div class="sub">${sub}</div>${kpi}${payoffChart(pnl,spot)}`);
+}
+
+// ---- 趨勢大圖(IV/HV + 分數 雙線) ----
+function trendChart(rows){
+  const W=520,H=240,L=40,Rt=40,Tp=14,B=28;
+  const iv=rows.map(r=>r.iv_hv).filter(v=>v!=null);
+  const sc2=rows.map(r=>r.best_score).filter(v=>v!=null);
+  if(iv.length<2) return "<div class='sub'>歷史唔夠數據畫圖。</div>";
+  const n=rows.length;
+  const X=i=>L+i*(W-L-Rt)/((n-1)||1);
+  const ivlo=Math.min(...iv,1),ivhi=Math.max(...iv,1.2);
+  const Yiv=v=>Tp+(ivhi-v)/((ivhi-ivlo)||1)*(H-Tp-B);
+  const Ysc=v=>Tp+(100-v)/100*(H-Tp-B);
+  const pIv=rows.map((r,i)=>r.iv_hv==null?null:[X(i),Yiv(r.iv_hv)]).filter(Boolean)
+    .map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const pSc=rows.map((r,i)=>r.best_score==null?null:[X(i),Ysc(r.best_score)]).filter(Boolean)
+    .map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const y1=Yiv(1.0).toFixed(1);
+  const lbl=(i,t,anchor)=>`<text x="${X(i).toFixed(1)}" y="${H-B+16}" fill="#8b97a6" font-size="10" text-anchor="${anchor}">${t}</text>`;
+  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%">
+    <line x1="${L}" y1="${y1}" x2="${W-Rt}" y2="${y1}" stroke="#f85149" stroke-width="1" stroke-dasharray="4 3" opacity=".6"/>
+    <text x="${W-Rt}" y="${+y1-3}" fill="#f85149" font-size="9" text-anchor="end">IV/HV=1.0</text>
+    <path d="${pIv}" fill="none" stroke="#d29922" stroke-width="2"/>
+    <path d="${pSc}" fill="none" stroke="#2f81f7" stroke-width="1.6" opacity=".9"/>
+    <text x="${L-4}" y="${Tp+8}" fill="#d29922" font-size="9" text-anchor="end">${ivhi.toFixed(1)}</text>
+    <text x="${L-4}" y="${H-B}" fill="#d29922" font-size="9" text-anchor="end">${ivlo.toFixed(1)}</text>
+    <text x="${W-Rt+4}" y="${Tp+8}" fill="#2f81f7" font-size="9">100</text>
+    <text x="${W-Rt+4}" y="${H-B}" fill="#2f81f7" font-size="9">0</text>
+    ${lbl(0,rows[0].date.slice(5),"start")}${lbl(n-1,rows[n-1].date.slice(5),"end")}
+  </svg></div>
+  <div class="legend"><span><i style="background:#d29922"></i>IV/HV(左軸)</span>
+    <span><i style="background:#2f81f7"></i>最高分(右軸)</span>
+    <span><i style="background:#f85149"></i>1.0 買賣分界</span></div>`;
+}
+
+function openTrend(tk){
+  const rows=HIST[tk];
+  if(!rows||rows.length<2){return;}
+  showModal(`<h3>📉 ${tk} 趨勢<span class="x" onclick="closeModal()">×</span></h3>
+    <div class="sub">IV/HV(平/貴) + 每日最高分,共 ${rows.length} 日</div>${trendChart(rows)}`);
+}
+
+function showModal(html){const o=document.getElementById("overlay");
+  document.getElementById("modal").innerHTML=html;o.classList.add("show");}
+function closeModal(){document.getElementById("overlay").classList.remove("show");}
+window.openPnl=openPnl; window.openTrend=openTrend; window.closeModal=closeModal;
+// 暫存 pnl 物件(畀 onclick 取)
+const PNL_STORE={}; let _pid=0;
+function stash(pnl){const id="p"+(_pid++);PNL_STORE[id]=pnl;return id;}
+window.openPnlById=(id,title,sub,spot)=>openPnl(title,sub,PNL_STORE[id],spot);
+
+function spreadHtml(s,spot,ticker){
   const legs = s.legs.map(l=>{
     const cls = l.action==="BUY"?"b":"s";
     return `<span class="${cls}">${l.action} ${l.type} ${l.strike}</span>`;
   }).join(" · ");
   const be = s.breakevens.join(" / ");
+  let pnlLink="";
+  if(s.pnl){const pnl={...s.pnl,breakevens:s.breakevens,
+      max_profit:Math.round(s.max_profit*100),max_loss:Math.round(s.max_loss*100)};
+    const pid=stash(pnl);
+    const sub=`${ticker} ${s.name} · ${s.dte}d`;
+    pnlLink=`<span class="pnl-link" onclick='openPnlById("${pid}",${JSON.stringify(s.name)},${JSON.stringify(sub)},${spot})'>📈 P&L · POP ${s.pnl.pop}%</span>`;}
   return `<div class="spread">
     <div class="sp-h">
       <span class="sp-name">${s.name}</span>
@@ -194,13 +329,16 @@ function spreadHtml(s){
       <span>max賺 <b style="color:var(--good)">$${s.max_profit}</b></span>
       <span>max蝕 <b style="color:var(--sell)">$${s.max_loss}</b></span>
       <span>回本 <b>${be}</b></span>
-      <span>闊度 <b>${s.width}</b></span>
+      <span>闊度 <b>${s.width}</b></span>${pnlLink}
     </div>
   </div>`;
 }
 
-function pickHtml(p){
+function pickHtml(p,spot,ticker){
   const reasons=(p.reasons||[]).map(x=>`<div>• ${x}</div>`).join("");
+  const pid=p.pnl?stash(p.pnl):null;
+  const sub=`${ticker} ${p.type} ${p.strike} · ${p.expiry}(${p.dte}d) · ${p.long===false?'沽出(short)':'買入(long)'}`;
+  const pnlLink=pid?`<span class="pnl-link" onclick='openPnlById("${pid}",${JSON.stringify(p.type+" "+p.strike)},${JSON.stringify(sub)},${spot})'>📈 P&L · POP ${p.pnl.pop}%</span>`:"";
   return `<div class="pick">
     <div class="pr1">
       <span class="ptype ${p.type}">${p.type}</span>
@@ -216,7 +354,7 @@ function pickHtml(p){
       <span>Δ <b>${p.delta>=0?"+":""}${p.delta}</b></span><span>Γ <b>${p.gamma}</b></span>
       <span>θ/日 <b>$${p.theta}</b></span><span>vega <b>$${p.vega}</b></span><span>OI <b>${p.oi}</b></span>
     </div>
-    <span class="togg" onclick="this.nextElementSibling.classList.toggle('show')">▾ 點解揀佢</span>
+    <span class="togg" onclick="this.nextElementSibling.classList.toggle('show')">▾ 點解揀佢</span>${pnlLink}
     <div class="why">${reasons}</div>
   </div>`;
 }
@@ -227,9 +365,9 @@ function renderCards(data){
     const tk=document.createElement("div"); tk.className="tk"; tk.dataset.side=r.side;
     const er=r.earnings?`<span class="er">⚠️ earnings ${r.earnings}</span>`:"";
     const ivhv=r.iv_hv==null?"—":r.iv_hv.toFixed(2);
-    const picks=(r.picks||[]).map(pickHtml).join("")||`<div class="empty">冇合條件嘅候選。</div>`;
+    const picks=(r.picks||[]).map(p=>pickHtml(p,r.spot,r.ticker)).join("")||`<div class="empty">冇合條件嘅候選。</div>`;
     const spreads=(r.spreads&&r.spreads.length)
-      ? `<div class="sec-t">Spread 組合(defined-risk)</div><div class="spreads">${r.spreads.map(spreadHtml).join("")}</div>`
+      ? `<div class="sec-t">Spread 組合(defined-risk)</div><div class="spreads">${r.spreads.map(s=>spreadHtml(s,r.spot,r.ticker)).join("")}</div>`
       : "";
     const sp=sparkline(HIST[r.ticker]);
     tk.innerHTML=`
@@ -240,7 +378,7 @@ function renderCards(data){
       </div>
       <div class="stat">
         <span>ATM-IV <b>${pct(r.atm_iv)}</b></span><span>IV/HV <b>${ivhv}</b></span>${er}
-        ${sp?`<span class="spark"><span class="lbl">IV/HV趨勢</span>${sp}</span>`:""}
+        ${sp?`<span class="spark clickable" onclick="openTrend('${r.ticker}')"><span class="lbl">IV/HV趨勢 ›</span>${sp}</span>`:""}
       </div>
       <div class="exit">${EXIT[r.side]||""}</div>
       <div class="sec-t">最高分候選合約</div>
@@ -250,28 +388,50 @@ function renderCards(data){
   });
 }
 
-let sortKey="score", sortAsc=false, FLAT=[];
+let tabMode="opt", sortKey="score", sortAsc=false, FLAT=[], FLATSP=[];
+const SORTS={opt:"score", sp:"rr"};
 function renderTable(){
-  const cols=[["ticker","標的"],["side","方向"],["type","C/P"],["strike","行使"],
-    ["dte","DTE"],["score","分數"],["delta","Δ"],["iv","IV"],["mid","Mid"]];
-  const rows=[...FLAT].sort((a,b)=>{
-    let x=a[sortKey],y=b[sortKey];
-    if(typeof x==="string"){return sortAsc?x.localeCompare(y):y.localeCompare(x);}
-    return sortAsc?x-y:y-x;
-  });
+  const seg=`<div class="bar-row"><div class="seg">
+    <div class="chip ${tabMode==='opt'?'on':''}" onclick="setTab('opt')">合約</div>
+    <div class="chip ${tabMode==='sp'?'on':''}" onclick="setTab('sp')">Spread</div></div></div>`;
+  let cols, rows, body;
+  if(tabMode==="opt"){
+    cols=[["ticker","標的"],["side","方向"],["type","C/P"],["strike","行使"],
+      ["dte","DTE"],["score","分數"],["delta","Δ"],["iv","IV"],["pop","POP"],["mid","Mid"]];
+    rows=[...FLAT];
+  }else{
+    cols=[["ticker","標的"],["name","策略"],["kind","收/俾"],["net","$"],
+      ["max_profit","max賺"],["max_loss","max蝕"],["rr","R:R"],["pop","POP"],["dte","DTE"]];
+    rows=[...FLATSP];
+  }
+  rows.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];
+    if(x==null)x=-1e9; if(y==null)y=-1e9;
+    if(typeof x==="string")return sortAsc?x.localeCompare(y):y.localeCompare(x);
+    return sortAsc?x-y:y-x;});
   const th=cols.map(([k,l])=>`<th data-k="${k}" class="${k===sortKey?(sortAsc?'asc':'sorted'):''}">${l}</th>`).join("");
-  const tr=rows.map(r=>`<tr>
-    <td>${r.ticker}</td><td><span class="mini ${r.side}">${r.side}</span></td>
-    <td><span class="mini ${r.type}">${r.type}</span></td><td>${r.strike}</td>
-    <td>${r.dte}</td><td style="color:${sc(r.score)};font-weight:800">${r.score}</td>
-    <td>${r.delta>=0?"+":""}${r.delta}</td><td>${pct(r.iv)}</td><td>$${r.mid}</td></tr>`).join("");
-  document.getElementById("tableView").innerHTML=`<table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
+  if(tabMode==="opt"){
+    body=rows.map(r=>`<tr>
+      <td>${r.ticker}</td><td><span class="mini ${r.side}">${r.side}</span></td>
+      <td><span class="mini ${r.type}">${r.type}</span></td><td>${r.strike}</td>
+      <td>${r.dte}</td><td style="color:${sc(r.score)};font-weight:800">${r.score}</td>
+      <td>${r.delta>=0?"+":""}${r.delta}</td><td>${pct(r.iv)}</td>
+      <td>${r.pnl?r.pnl.pop+"%":"—"}</td><td>$${r.mid}</td></tr>`).join("");
+  }else{
+    body=rows.map(r=>`<tr>
+      <td>${r.ticker}</td><td>${r.name}</td>
+      <td><span class="mini ${r.kind==='credit'?'BUY':'CALL'}">${r.kind==='credit'?'收':'俾'} $${r.net}</span></td>
+      <td>$${r.net}</td><td style="color:var(--good)">$${r.max_profit}</td>
+      <td style="color:var(--sell)">$${r.max_loss}</td><td><b>${r.rr??"—"}</b></td>
+      <td>${r.pnl?r.pnl.pop+"%":"—"}</td><td>${r.dte}</td></tr>`).join("");
+  }
+  document.getElementById("tableView").innerHTML=seg+`<table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
   document.querySelectorAll("#tableView th").forEach(h=>h.onclick=()=>{
     const k=h.dataset.k;
     if(k===sortKey)sortAsc=!sortAsc; else {sortKey=k;sortAsc=false;}
     renderTable();
   });
 }
+window.setTab=m=>{tabMode=m;sortKey=SORTS[m];sortAsc=false;renderTable();};
 
 function render(data){
   const m=document.getElementById("meta");
@@ -279,8 +439,11 @@ function render(data){
     +`更新:${data.generated_at||'—'} · DTE ${data.config?.min_dte}-${data.config?.max_dte}`
     +` · <button class="refresh" onclick="location.reload()">↻ 重新整理</button>`;
   document.getElementById("bar").style.display="flex";
-  FLAT=[];
-  (data.results||[]).forEach(r=>(r.picks||[]).forEach(p=>FLAT.push({ticker:r.ticker,side:r.side,...p})));
+  FLAT=[]; FLATSP=[];
+  (data.results||[]).forEach(r=>{
+    (r.picks||[]).forEach(p=>FLAT.push({ticker:r.ticker,side:r.side,pop:p.pnl?p.pnl.pop:null,...p}));
+    (r.spreads||[]).forEach(s=>FLATSP.push({ticker:r.ticker,pop:s.pnl?s.pnl.pop:null,...s}));
+  });
   renderCards(data); renderTable();
 
   document.querySelectorAll('.chip[data-f]').forEach(c=>c.onclick=()=>{

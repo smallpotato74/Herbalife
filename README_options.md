@@ -10,6 +10,7 @@
 | `options.html` | 📱 每日㩒入去睇嘅 dashboard 網站（卡片+spread+趨勢線+總覽表） |
 | `options_data.json` / `.js` | dashboard 讀嘅數據（screener 生成） |
 | `options_history.json` / `.js` | 每日 IV/HV/分數歷史（畫趨勢線） |
+| `notify.py` | 高分 setup 通知（Telegram / Email / Webhook） |
 | `.github/workflows/options-daily.yml` | 每日自動跑 screener + 更新網站 |
 | `demo_output.txt` | 離線 demo 嘅實際輸出（畀你預覽個樣） |
 
@@ -143,6 +144,30 @@ python options_screener.py --demo --tickers AAPL NVDA KO SPY \
 |---|---|---|---|---|
 | **買方**（long call/put） | IV/HV低、Δ0.55–0.70、DTE 45–90 | +50~100% | −40~50% | 21 DTE 重評 |
 | **賣方**（short put/call、credit） | IV/HV高、Δ0.15–0.30、DTE 30–45 | 收 50% premium | 蝕 2× credit | 21 DTE 管理避 gamma |
+
+### 📈 P&L 預測
+卡片同 spread 嘅 **📈 P&L** 連結會開一個 modal:到期 payoff 曲線(賺綠蝕紅)、
+**回本價、最大賺/蝕、POP(獲利機率)、±1σ 預期區間**。POP 用 lognormal(IV+時間)
+估 S 到期落喺獲利區嘅機率。
+
+### 📉 趨勢大圖
+點卡片右邊嘅 **IV/HV趨勢** sparkline → 開大圖,IV/HV(平/貴)同每日最高分雙線,
+紅虛線 = 1.0 買賣分界。
+
+### 🔔 高分通知(notify.py)
+`notify.py` 讀 `options_data.json`,分數 ≥ 門檻(預設 80)就發通知。
+支援 **Telegram / Email / 通用 Webhook(Discord/Slack)**,靠環境變數,冇設定就略過:
+
+```bash
+SCORE_THRESHOLD=80 \
+TELEGRAM_BOT_TOKEN=xxx TELEGRAM_CHAT_ID=yyy \
+python notify.py options_data.json
+```
+
+GitHub Actions 已加咗通知 step。喺 repo **Settings → Secrets and variables → Actions**
+加 `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`(或 `WEBHOOK_URL`,或 `SMTP_*`+`EMAIL_TO`)就會每日自動 ping 你。
+
+---
 
 詳細策略（spread / iron condor / calendar / skew / GEX 等進階）見 `options-trading-report.md`。
 

@@ -39,6 +39,20 @@ jobs:
             --side auto --min-dte 30 --max-dte 60 --top 5 \
             --json options_data.json --history options_history.json
 
+      - name: 高分 setup 通知(可選)
+        continue-on-error: true
+        env:
+          SCORE_THRESHOLD: "80"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python notify.py options_data.json
+
       - name: Commit 更新(有變先 commit)
         run: |
           git config user.name  "options-bot"
