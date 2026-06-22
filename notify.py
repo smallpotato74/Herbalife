@@ -85,7 +85,7 @@ def send_webhook(msg):
     return True
 
 
-def send_email(msg):
+def send_email(msg, subject="期權高分提示"):
     host = os.getenv("SMTP_HOST")
     to = os.getenv("EMAIL_TO")
     if not (host and to):
@@ -93,7 +93,7 @@ def send_email(msg):
     import smtplib
     from email.mime.text import MIMEText
     m = MIMEText(msg, "plain", "utf-8")
-    m["Subject"] = "期權高分提示"
+    m["Subject"] = subject
     m["From"] = os.getenv("EMAIL_FROM", os.getenv("SMTP_USER", "options-bot"))
     m["To"] = to
     port = int(os.getenv("SMTP_PORT", "587"))
@@ -121,7 +121,12 @@ def main():
         return
     msg = fmt_message(data, alerts, threshold)
     print(msg)
-    sent = any([send_telegram(msg), send_webhook(msg), send_email(msg)])
+    # 主旨整靚:有幾多個 + 最高分,Gmail inbox 一眼睇到
+    top = max((p.get("score", 0) for r in data.get("results", [])
+               for p in r.get("picks", [])), default=0)
+    subject = f"📈 期權提示:{len(alerts)} 個高分 setup(最高 {top})"
+    sent = any([send_telegram(msg), send_webhook(msg),
+                send_email(msg, subject)])
     if not sent:
         print("(未設定任何通知渠道;設定 TELEGRAM_* / WEBHOOK_URL / SMTP_* 環境變數即可。)")
 
