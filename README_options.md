@@ -7,6 +7,9 @@
 | `options_screener.py` | 真·可跑嘅 Python screener（ATR + IV/HV + Greeks 評分排序） |
 | `make_excel_template.py` | 生成 Excel/Google Sheets 模板（公式自動計分） |
 | `options_screener_template.xlsx` | 上面生成出嚟嘅模板成品 |
+| `options.html` | 📱 每日㩒入去睇嘅 dashboard 網站 |
+| `options_data.json` / `.js` | dashboard 讀嘅數據（screener 生成） |
+| `.github/workflows/options-daily.yml` | 每日自動跑 screener + 更新網站 |
 | `demo_output.txt` | 離線 demo 嘅實際輸出（畀你預覽個樣） |
 
 > ⚠️ 教育用途，非投資建議。期權高風險，落場前用模擬倉。
@@ -88,7 +91,39 @@ python make_excel_template.py     # 出 options_screener_template.xlsx
 
 ---
 
-## 5. 進場 / 退場（機械化規則速查）
+## 5. 📱 Dashboard 網站（每日㩒入去睇）
+
+`options.html` 係一個靜態網頁,讀 `options_data.json` 顯示：每隻標的嘅 BUY/SELL badge、
+最高分候選合約、Greeks、評分條、同進出場提示。手機都睇得舒服,仲可以篩 BUY/SELL。
+
+### 數據點嚟
+```bash
+# 加 --json 就會順手寫埋 options_data.json + options_data.js
+python options_screener.py --tickers AAPL MSFT NVDA SPY --json options_data.json
+```
+
+### 三種開法
+1. **本地直接開**（最簡單）：雙擊 `options.html`。fetch 失敗會自動 fallback 用
+   `options_data.js`（全域變數版,免 CORS）。
+2. **本地 server**：`python -m http.server` → 開 `http://localhost:8000/options.html`。
+3. **GitHub Pages（推薦,有網址,手機都㩒到）**：
+   - Repo → **Settings → Pages** → Source 揀你個 branch（或 `main`）→ 根目錄 `/`
+   - 網址會係 `https://<user>.github.io/<repo>/options.html`
+   - 加入手機主畫面,每日㩒一下就睇到最新
+
+### 每日自動更新（唔使你手動）
+`.github/workflows/options-daily.yml` 已經設定好：
+- 每個美股交易日 **21:30 UTC**（美東收市後）自動跑 screener（真實數據）
+- 重新生成 `options_data.json/.js` 並 commit 返入 repo
+- GitHub Pages 自動 serve 最新版 → 你個網站自己更新
+
+> 想即刻試:去 repo 嘅 **Actions → 每日更新期權 Dashboard → Run workflow**（可改 tickers）。
+> ⚠️ 要喺 repo **Settings → Actions → General** 開「Read and write permissions」,Action 先 push 到。
+> 如果 GitHub runner 嗰陣 yfinance 被限流,workflow 會保留舊數據唔會整爛個網。
+
+---
+
+## 6. 進場 / 退場（機械化規則速查）
 
 | | 進場 | 止賺 | 止蝕 | 時間 |
 |---|---|---|---|---|
@@ -99,7 +134,7 @@ python make_excel_template.py     # 出 options_screener_template.xlsx
 
 ---
 
-## 6. 建議流程
+## 7. 建議流程
 
 1. `--demo` 跑一次熟習輸出格式
 2. 換真實 ticker 跑 live，揀總分高 + 過濾 ✓ 嘅候選

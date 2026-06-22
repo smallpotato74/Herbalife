@@ -1,0 +1,518 @@
+{
+  "generated_at": "2026-06-22 04:58 UTC",
+  "source": "DEMO(合成數據)",
+  "config": {
+    "min_dte": 30,
+    "max_dte": 60,
+    "min_oi": 500,
+    "min_vol": 50,
+    "max_spread_pct": 0.06,
+    "buy_delta": [
+      0.55,
+      0.7
+    ],
+    "sell_delta": [
+      0.15,
+      0.3
+    ]
+  },
+  "results": [
+    {
+      "ticker": "AAPL",
+      "spot": 195.0,
+      "atr": 5.09,
+      "hv20": 0.2337,
+      "hv_rank": 38.0,
+      "atm_iv": 0.22,
+      "iv_hv": 0.94,
+      "earnings": "2026-07-10",
+      "side": "BUY",
+      "picks": [
+        {
+          "type": "CALL",
+          "strike": 190.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 79.9,
+          "mid": 8.64,
+          "iv": 0.2203,
+          "delta": 0.684,
+          "gamma": 0.0268,
+          "theta": -0.083,
+          "vega": 0.215,
+          "oi": 2983,
+          "volume": 798,
+          "spread_pct": 0.037,
+          "reasons": [
+            "流動性 25/25 (OI=2983,spr=3.7%)",
+            "Delta 0.68 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=5.00, 1SD(IV)=13.28, ATR移動=21.51)",
+            "IV regime 13/25 (IV/HV=0.94)",
+            "⚠️ 到期前有earnings(2026-07-10),IV crush風險 -8"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 200.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 79.9,
+          "mid": 7.68,
+          "iv": 0.2203,
+          "delta": -0.608,
+          "gamma": 0.0289,
+          "theta": -0.057,
+          "vega": 0.232,
+          "oi": 3067,
+          "volume": 783,
+          "spread_pct": 0.034,
+          "reasons": [
+            "流動性 25/25 (OI=3067,spr=3.4%)",
+            "Delta 0.61 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=5.00, 1SD(IV)=13.28, ATR移動=21.51)",
+            "IV regime 13/25 (IV/HV=0.94)",
+            "⚠️ 到期前有earnings(2026-07-10),IV crush風險 -8"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 190.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 79.9,
+          "mid": 9.43,
+          "iv": 0.2203,
+          "delta": 0.672,
+          "gamma": 0.0239,
+          "theta": -0.076,
+          "vega": 0.247,
+          "oi": 2996,
+          "volume": 802,
+          "spread_pct": 0.023,
+          "reasons": [
+            "流動性 25/25 (OI=2996,spr=2.3%)",
+            "Delta 0.67 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=5.00, 1SD(IV)=15.06, ATR移動=24.39)",
+            "IV regime 13/25 (IV/HV=0.94)",
+            "⚠️ 到期前有earnings(2026-07-10),IV crush風險 -8"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 200.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 79.9,
+          "mid": 8.22,
+          "iv": 0.2203,
+          "delta": -0.586,
+          "gamma": 0.0258,
+          "theta": -0.05,
+          "vega": 0.267,
+          "oi": 3059,
+          "volume": 864,
+          "spread_pct": 0.039,
+          "reasons": [
+            "流動性 25/25 (OI=3059,spr=3.9%)",
+            "Delta 0.59 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=5.00, 1SD(IV)=15.06, ATR移動=24.39)",
+            "IV regime 13/25 (IV/HV=0.94)",
+            "⚠️ 到期前有earnings(2026-07-10),IV crush風險 -8"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 190.0,
+          "expiry": "2026-08-19",
+          "dte": 58,
+          "score": 79.9,
+          "mid": 10.37,
+          "iv": 0.2203,
+          "delta": 0.663,
+          "gamma": 0.0213,
+          "theta": -0.069,
+          "vega": 0.284,
+          "oi": 3195,
+          "volume": 890,
+          "spread_pct": 0.045,
+          "reasons": [
+            "流動性 25/25 (OI=3195,spr=4.5%)",
+            "Delta 0.66 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=5.00, 1SD(IV)=17.10, ATR移動=27.69)",
+            "IV regime 13/25 (IV/HV=0.94)",
+            "⚠️ 到期前有earnings(2026-07-10),IV crush風險 -8"
+          ]
+        }
+      ]
+    },
+    {
+      "ticker": "NVDA",
+      "spot": 120.0,
+      "atr": 6.65,
+      "hv20": 0.5439,
+      "hv_rank": 59.0,
+      "atm_iv": 0.72,
+      "iv_hv": 1.32,
+      "earnings": "2026-07-01",
+      "side": "SELL",
+      "picks": [
+        {
+          "type": "PUT",
+          "strike": 111.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 68.2,
+          "mid": 6.49,
+          "iv": 0.7435,
+          "delta": -0.318,
+          "gamma": 0.0129,
+          "theta": -0.135,
+          "vega": 0.133,
+          "oi": 1768,
+          "volume": 485,
+          "spread_pct": 0.031,
+          "reasons": [
+            "流動性 21/25 (OI=1768,spr=3.1%)",
+            "Delta 0.32 → 23/25 (目標0.15-0.3)",
+            "到價配合 8/25 (距strike=9.00, 1SD(IV)=26.75, ATR移動=28.09)",
+            "IV regime 16/25 (IV/HV=1.32)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 108.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 67.2,
+          "mid": 5.49,
+          "iv": 0.7555,
+          "delta": -0.279,
+          "gamma": 0.012,
+          "theta": -0.13,
+          "vega": 0.125,
+          "oi": 1303,
+          "volume": 351,
+          "spread_pct": 0.038,
+          "reasons": [
+            "流動性 15/25 (OI=1303,spr=3.8%)",
+            "Delta 0.28 → 25/25 (目標0.15-0.3)",
+            "到價配合 11/25 (距strike=12.00, 1SD(IV)=26.75, ATR移動=28.09)",
+            "IV regime 16/25 (IV/HV=1.32)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 141.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 66.9,
+          "mid": 4.52,
+          "iv": 0.7537,
+          "delta": 0.289,
+          "gamma": 0.0122,
+          "theta": -0.14,
+          "vega": 0.127,
+          "oi": 506,
+          "volume": 134,
+          "spread_pct": 0.047,
+          "reasons": [
+            "流動性 6/25 (OI=506,spr=4.7%)",
+            "Delta 0.29 → 25/25 (目標0.15-0.3)",
+            "到價配合 19/25 (距strike=21.00, 1SD(IV)=26.75, ATR移動=28.09)",
+            "IV regime 16/25 (IV/HV=1.32)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 108.0,
+          "expiry": "2026-08-19",
+          "dte": 58,
+          "score": 66.8,
+          "mid": 8.14,
+          "iv": 0.7555,
+          "delta": -0.3,
+          "gamma": 0.0096,
+          "theta": -0.103,
+          "vega": 0.166,
+          "oi": 1218,
+          "volume": 378,
+          "spread_pct": 0.014,
+          "reasons": [
+            "流動性 17/25 (OI=1218,spr=1.4%)",
+            "Delta 0.30 → 25/25 (目標0.15-0.3)",
+            "到價配合 8/25 (距strike=12.00, 1SD(IV)=34.44, ATR移動=36.16)",
+            "IV regime 16/25 (IV/HV=1.32)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 105.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 65.9,
+          "mid": 4.64,
+          "iv": 0.7698,
+          "delta": -0.243,
+          "gamma": 0.0109,
+          "theta": -0.124,
+          "vega": 0.116,
+          "oi": 823,
+          "volume": 201,
+          "spread_pct": 0.024,
+          "reasons": [
+            "流動性 11/25 (OI=823,spr=2.4%)",
+            "Delta 0.24 → 25/25 (目標0.15-0.3)",
+            "到價配合 14/25 (距strike=15.00, 1SD(IV)=26.75, ATR移動=28.09)",
+            "IV regime 16/25 (IV/HV=1.32)"
+          ]
+        }
+      ]
+    },
+    {
+      "ticker": "KO",
+      "spot": 62.0,
+      "atr": 0.88,
+      "hv20": 0.1427,
+      "hv_rank": 67.0,
+      "atm_iv": 0.16,
+      "iv_hv": 1.12,
+      "earnings": null,
+      "side": "SELL",
+      "picks": [
+        {
+          "type": "CALL",
+          "strike": 66.0,
+          "expiry": "2026-08-19",
+          "dte": 58,
+          "score": 81.1,
+          "mid": 0.44,
+          "iv": 0.1611,
+          "delta": 0.203,
+          "gamma": 0.071,
+          "theta": -0.011,
+          "vega": 0.07,
+          "oi": 2183,
+          "volume": 607,
+          "spread_pct": 0.0,
+          "reasons": [
+            "流動性 25/25 (OI=2183,spr=0.0%)",
+            "Delta 0.20 → 25/25 (目標0.15-0.3)",
+            "到價配合 25/25 (距strike=4.00, 1SD(IV)=3.95, ATR移動=4.78)",
+            "IV regime 6/25 (IV/HV=1.12)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 66.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 81.1,
+          "mid": 0.29,
+          "iv": 0.1611,
+          "delta": 0.164,
+          "gamma": 0.0705,
+          "theta": -0.011,
+          "vega": 0.054,
+          "oi": 2017,
+          "volume": 670,
+          "spread_pct": 0.034,
+          "reasons": [
+            "流動性 25/25 (OI=2017,spr=3.4%)",
+            "Delta 0.16 → 25/25 (目標0.15-0.3)",
+            "到價配合 25/25 (距strike=4.00, 1SD(IV)=3.48, ATR移動=4.21)",
+            "IV regime 6/25 (IV/HV=1.12)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 66.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 78.7,
+          "mid": 0.19,
+          "iv": 0.1611,
+          "delta": 0.127,
+          "gamma": 0.0672,
+          "theta": -0.01,
+          "vega": 0.04,
+          "oi": 2041,
+          "volume": 593,
+          "spread_pct": 0.0,
+          "reasons": [
+            "流動性 25/25 (OI=2041,spr=0.0%)",
+            "Delta 0.13 → 23/25 (目標0.15-0.3)",
+            "到價配合 25/25 (距strike=4.00, 1SD(IV)=3.07, ATR移動=3.72)",
+            "IV regime 6/25 (IV/HV=1.12)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 58.0,
+          "expiry": "2026-08-19",
+          "dte": 58,
+          "score": 77.6,
+          "mid": 0.3,
+          "iv": 0.1746,
+          "delta": -0.137,
+          "gamma": 0.0507,
+          "theta": -0.007,
+          "vega": 0.054,
+          "oi": 1991,
+          "volume": 541,
+          "spread_pct": 0.033,
+          "reasons": [
+            "流動性 23/25 (OI=1991,spr=3.3%)",
+            "Delta 0.14 → 24/25 (目標0.15-0.3)",
+            "到價配合 25/25 (距strike=4.00, 1SD(IV)=3.95, ATR移動=4.78)",
+            "IV regime 6/25 (IV/HV=1.12)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 58.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 76.3,
+          "mid": 0.21,
+          "iv": 0.1746,
+          "delta": -0.113,
+          "gamma": 0.0505,
+          "theta": -0.007,
+          "vega": 0.042,
+          "oi": 2028,
+          "volume": 665,
+          "spread_pct": 0.047,
+          "reasons": [
+            "流動性 24/25 (OI=2028,spr=4.7%)",
+            "Delta 0.11 → 21/25 (目標0.15-0.3)",
+            "到價配合 25/25 (距strike=4.00, 1SD(IV)=3.48, ATR移動=4.21)",
+            "IV regime 6/25 (IV/HV=1.12)"
+          ]
+        }
+      ]
+    },
+    {
+      "ticker": "SPY",
+      "spot": 540.0,
+      "atr": 6.8,
+      "hv20": 0.1569,
+      "hv_rank": 73.0,
+      "atm_iv": 0.12,
+      "iv_hv": 0.76,
+      "earnings": null,
+      "side": "BUY",
+      "picks": [
+        {
+          "type": "PUT",
+          "strike": 546.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 96.8,
+          "mid": 9.99,
+          "iv": 0.12,
+          "delta": -0.565,
+          "gamma": 0.0196,
+          "theta": -0.074,
+          "vega": 0.658,
+          "oi": 3004,
+          "volume": 851,
+          "spread_pct": 0.048,
+          "reasons": [
+            "流動性 25/25 (OI=3004,spr=4.8%)",
+            "Delta 0.56 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=6.00, 1SD(IV)=20.07, ATR移動=28.72)",
+            "IV regime 22/25 (IV/HV=0.76)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 532.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 96.8,
+          "mid": 15.5,
+          "iv": 0.12,
+          "delta": 0.694,
+          "gamma": 0.0154,
+          "theta": -0.133,
+          "vega": 0.665,
+          "oi": 3121,
+          "volume": 836,
+          "spread_pct": 0.023,
+          "reasons": [
+            "流動性 25/25 (OI=3121,spr=2.3%)",
+            "Delta 0.69 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=8.00, 1SD(IV)=22.75, ATR移動=32.57)",
+            "IV regime 22/25 (IV/HV=0.76)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 532.0,
+          "expiry": "2026-08-19",
+          "dte": 58,
+          "score": 96.8,
+          "mid": 17.16,
+          "iv": 0.12,
+          "delta": 0.686,
+          "gamma": 0.0137,
+          "theta": -0.123,
+          "vega": 0.763,
+          "oi": 3321,
+          "volume": 924,
+          "spread_pct": 0.045,
+          "reasons": [
+            "流動性 25/25 (OI=3321,spr=4.5%)",
+            "Delta 0.69 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=8.00, 1SD(IV)=25.83, ATR移動=36.97)",
+            "IV regime 22/25 (IV/HV=0.76)"
+          ]
+        },
+        {
+          "type": "CALL",
+          "strike": 532.0,
+          "expiry": "2026-07-27",
+          "dte": 35,
+          "score": 96.4,
+          "mid": 14.11,
+          "iv": 0.12,
+          "delta": 0.704,
+          "gamma": 0.0172,
+          "theta": -0.144,
+          "vega": 0.578,
+          "oi": 3109,
+          "volume": 831,
+          "spread_pct": 0.036,
+          "reasons": [
+            "流動性 25/25 (OI=3109,spr=3.6%)",
+            "Delta 0.70 → 25/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=8.00, 1SD(IV)=20.07, ATR移動=28.72)",
+            "IV regime 22/25 (IV/HV=0.76)"
+          ]
+        },
+        {
+          "type": "PUT",
+          "strike": 546.0,
+          "expiry": "2026-08-06",
+          "dte": 45,
+          "score": 96.1,
+          "mid": 10.67,
+          "iv": 0.12,
+          "delta": -0.544,
+          "gamma": 0.0174,
+          "theta": -0.063,
+          "vega": 0.752,
+          "oi": 3130,
+          "volume": 886,
+          "spread_pct": 0.028,
+          "reasons": [
+            "流動性 25/25 (OI=3130,spr=2.8%)",
+            "Delta 0.54 → 24/25 (目標0.55-0.7)",
+            "到價配合 25/25 (距strike=6.00, 1SD(IV)=22.75, ATR移動=32.57)",
+            "IV regime 22/25 (IV/HV=0.76)"
+          ]
+        }
+      ]
+    }
+  ]
+}

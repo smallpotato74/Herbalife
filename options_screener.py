@@ -659,6 +659,67 @@ def print_report(u: Underlying, side: str, top: list[Scored]):
     print()
 
 
+def _safe(x):
+    """NaN → None,方便 JSON。"""
+    return None if (isinstance(x, float) and math.isnan(x)) else x
+
+
+def result_to_dict(u: Underlying, side: str, top: list[Scored]) -> dict:
+    iv_hv = (u.atm_iv / u.hv20) if (u.hv20 and not math.isnan(u.atm_iv)) else None
+    picks = []
+    for s in top:
+        c, g = s.contract, s.contract.greeks
+        picks.append({
+            "type": "CALL" if c.is_call else "PUT",
+            "strike": c.strike, "expiry": c.expiry.isoformat(), "dte": c.dte,
+            "score": round(s.score, 1), "mid": round(c.mid, 2),
+            "iv": round(c.iv, 4),
+            "delta": round(g.delta, 3), "gamma": round(g.gamma, 4),
+            "theta": round(g.theta_per_day, 3), "vega": round(g.vega_per_1pct, 3),
+            "oi": c.open_interest, "volume": c.volume,
+            "spread_pct": round(c.spread_pct, 3),
+            "reasons": s.reasons,
+        })
+    return {
+        "ticker": u.ticker, "spot": round(u.spot, 2),
+        "atr": _safe(round(u.atr, 2) if not math.isnan(u.atr) else float("nan")),
+        "hv20": _safe(round(u.hv20, 4) if not math.isnan(u.hv20) else float("nan")),
+        "hv_rank": _safe(round(u.hv_rank, 0) if not math.isnan(u.hv_rank) else float("nan")),
+        "atm_iv": _safe(round(u.atm_iv, 4) if not math.isnan(u.atm_iv) else float("nan")),
+        "iv_hv": _safe(round(iv_hv, 2) if iv_hv is not None else None),
+        "earnings": u.next_earnings.isoformat() if u.next_earnings else None,
+        "side": side.upper(),
+        "picks": picks,
+    }
+
+
+def export_json(path: str, results: list[dict], cfg: ScreenConfig, demo: bool):
+    import json
+    from datetime import timezone
+    payload = {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "DEMO(合成數據)" if demo else "LIVE",
+        "config": {
+            "min_dte": cfg.min_dte, "max_dte": cfg.max_dte,
+            "min_oi": cfg.min_oi, "min_vol": cfg.min_vol,
+            "max_spread_pct": cfg.max_spread_pct,
+            "buy_delta": list(cfg.buy_delta), "sell_delta": list(cfg.sell_delta),
+        },
+        "results": results,
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print(f"已寫 JSON → {path}")
+    # 同時寫一個 .js 版(全域變數),令網頁喺 file:// 本地開都讀到(免 CORS)
+    if path.endswith(".json"):
+        js_path = path[:-5] + ".js"
+        with open(js_path, "w", encoding="utf-8") as f:
+            f.write("window.OPTIONS_DATA = ")
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+            f.write(";\n")
+        print(f"已寫 JS  → {js_path}")
+
+
 def build_provider(args) -> DataProvider:
     if args.demo:
         return SampleProvider(r=args.rate)
@@ -682,6 +743,8 @@ def main(argv=None):
     p.add_argument("--demo", action="store_true", help="用離線合成數據")
     p.add_argument("--tradier-token", default=None)
     p.add_argument("--tradier-live", action="store_true")
+    p.add_argument("--json", default=None,
+                   help="同時匯出結果做 JSON(畀 dashboard 網站用)")
     args = p.parse_args(argv)
 
     cfg = ScreenConfig(side=args.side, min_dte=args.min_dte,
@@ -692,13 +755,18 @@ def main(argv=None):
 
     print("\n⚠️  教育用途,非投資建議。"
           + ("  [DEMO:合成數據]" if args.demo else "  [LIVE 數據]") + "\n")
+    results = []
     for tk in args.tickers:
         try:
             u, top = screen_ticker(provider, tk, cfg)
             side = decide_side(u, cfg)
             print_report(u, side, top)
+            results.append(result_to_dict(u, side, top))
         except Exception as e:
             print(f"[{tk}] 出錯: {e}", file=sys.stderr)
+
+    if args.json:
+        export_json(args.json, results, cfg, args.demo)
 
 
 if __name__ == "__main__":

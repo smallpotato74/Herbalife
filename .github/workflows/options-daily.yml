@@ -1,0 +1,52 @@
+name: 每日更新期權 Dashboard
+
+# 每個美股交易日收市後跑(美東 16:00 = UTC 20:00,夏令時),
+# 用真實數據生成 options_data.json/.js,然後 commit 返入個 repo。
+# GitHub Pages 會自動serve 最新版,你每日㩒入個網就睇到。
+on:
+  schedule:
+    - cron: "30 21 * * 1-5"   # 週一至五 21:30 UTC
+  workflow_dispatch:          # 都可以喺 Actions 頁手動㩒掣即刻跑
+    inputs:
+      tickers:
+        description: "想篩嘅標的(空格分隔)"
+        default: "AAPL MSFT NVDA SPY QQQ AMD GOOGL META"
+        required: false
+
+permissions:
+  contents: write             # 要 push 返 json 入 repo
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安裝相依
+        run: pip install yfinance pandas numpy
+
+      - name: 跑 screener(LIVE)
+        # 失敗都唔好令成個 workflow 紅;保留舊數據
+        continue-on-error: true
+        env:
+          TICKERS: ${{ github.event.inputs.tickers || 'AAPL MSFT NVDA SPY QQQ AMD GOOGL META' }}
+        run: |
+          python options_screener.py --tickers $TICKERS \
+            --side auto --min-dte 30 --max-dte 60 --top 5 \
+            --json options_data.json
+
+      - name: Commit 更新(有變先 commit)
+        run: |
+          git config user.name  "options-bot"
+          git config user.email "actions@github.com"
+          if [ -n "$(git status --porcelain options_data.json options_data.js)" ]; then
+            git add options_data.json options_data.js
+            git commit -m "chore: 每日更新期權 dashboard 數據 [skip ci]"
+            git push
+          else
+            echo "數據冇變,唔使 commit。"
+          fi
